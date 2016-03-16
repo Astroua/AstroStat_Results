@@ -9,20 +9,26 @@ HOURS=72
 SCRIPT_PATH=/home/ekoch/code_repos/AstroStat_Results/
 
 # Noiseless
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial0_all.pbs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial1_all.pbs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial2_all.pbs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial3_all.pbs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial4_all.pbs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_comp.pbs
+DATA_PATH=/lustre/home/ekoch/sims/SimSuite8/
+ADD_NOISE=F
+OUTPUT_PATH=/lustre/home/ekoch/sims/results/clean_results/
+
+for face1 in {0,2}; do
+    for face2 in {0,2}; do
+        qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs fid_comp $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH
+        for fid in {0..4}; do
+            qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs $fid $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH
 
 # Noisy
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial0_all_noise.pbs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial1_all_noise.pbs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial2_all_noise.pbs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial3_all_noise.pbs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial4_all_noise.pbs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_comp_noise.pbs
+DATA_PATH=/lustre/home/ekoch/sims/SimSuite8_noise/
+ADD_NOISE=T
+OUTPUT_PATH=/lustre/home/ekoch/sims/results/noise_same_results/
+
+for face1 in {0,2}; do
+    for face2 in {0,2}; do
+        qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs fid_comp $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH
+        for fid in {0..4}; do
+            qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs $fid $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH
 
 # Obs to Obs
 qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/complete_to_complete.pbs

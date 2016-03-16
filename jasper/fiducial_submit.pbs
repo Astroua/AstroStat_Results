@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#PBS -S /bin/bash
+#PBS -l pmem=4000m
+#PBS -l feature=X5675
+#PBS -l nodes=1:ppn=12
+#PBS -l walltime=20:00:00
+#PBS -m bea
+#PBS -M koch.eric.w@gmail.com
+#PBS -l epilogue=/home/ekoch/code_repos/simscript/epilogue.sh
+
+source /home/ekoch/.bashrc
+
+FIDUCIAL=$1
+FACE_1=$2
+FACE_2=$3
+DATA_DIR=$4
+ADD_NOISE=$5
+RESULTS_DIR=$6
+
+echo "Starting at: `date`"
+mpiexec python2.7 /lustre/home/ekoch/code_repos/AstroStat_Results/jasper/output_mpi_load.py $DATA_DIR $FIDUCIAL $FACE_1 $FACE_2 max SimSuite8 T $ADD_NOISE $RESULTS_DIR
+echo "Exited with code $? at: `date`"
