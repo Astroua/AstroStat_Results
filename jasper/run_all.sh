@@ -6,7 +6,7 @@ PROCS=12
 PMEM=4gb
 HOURS=72
 
-SCRIPT_PATH=/home/ekoch/code_repos/TurbuStat/Examples/
+SCRIPT_PATH=/home/ekoch/code_repos/AstroStat_Results/
 
 # Noiseless
 qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial0_all.pbs
