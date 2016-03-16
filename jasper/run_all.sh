@@ -18,6 +18,9 @@ for face1 in {0,2}; do
         qsub -N fiducial_comp_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs fid_comp $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH
         for fid in {0..4}; do
             qsub -N fiducial_$fid_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs $fid $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH
+        done
+    done
+done
 
 # Noisy
 DATA_PATH=/lustre/home/ekoch/sims/SimSuite8_noise/
@@ -29,6 +32,9 @@ for face1 in {0,2}; do
         qsub -N fiducial_noise_comp_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs fid_comp $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH
         for fid in {0..4}; do
             qsub -N fiducial_noise_$fid_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs $fid $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH
+        done
+    done
+done
 
 # Obs to Obs
 qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/complete_to_complete.pbs
