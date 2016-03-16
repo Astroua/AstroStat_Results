@@ -350,6 +350,16 @@ if __name__ == "__main__":
         noise_added = False
     output_direc = str(sys.argv[9])
 
+    print("Running with parameters:")
+    print("Fiducial %s" % sys.argv[2])
+    print("Face 1 %s" % sys.argv[3])
+    print("Face 2 %s" % sys.argv[4])
+    print("Timesteps %s" % sys.argv[5])
+    print("Save name %s" % sys.argv[6])
+    print("Run in parallel? %s" % sys.argv[7])
+    print("Add noise? %s" % sys.argv[8])
+    print("Output to: %s" % sys.argv[9])
+
     # Sigma for COMPLETE NGC1333 data using signal-id (normal dist)
     # Note that the mean is forced to 0
     # rms_noise = 0.1277369117707014 / 2.  # in K
