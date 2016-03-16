@@ -9,29 +9,29 @@ HOURS=72
 SCRIPT_PATH=/home/ekoch/code_repos/AstroStat_Results/
 
 # Noiseless
-DATA_PATH=/lustre/home/ekoch/sims/SimSuite8/
+DATA_DIR=/lustre/home/ekoch/sims/SimSuite8/
 ADD_NOISE=F
-OUTPUT_PATH=/lustre/home/ekoch/sims/results/clean_results/
+RESULTS_DIR=/lustre/home/ekoch/sims/results/clean_results/
 
 for face1 in {0,2}; do
     for face2 in {0,2}; do
-        qsub -N fiducial_comp_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs -F "fid_comp $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH"
+        qsub -N fiducial_comp_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v FIDUCIAL="fid_comp",FACE1=$face1,FACE2=$face2,DATA_DIR$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR $SCRIPT_PATH/jasper/fiducial_submit.pbs
         for fid in {0..4}; do
-            qsub -N fiducial_$fid_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs -F "$fid $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH"
+            qsub -N fiducial_$fid_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v FIDUCIAL="fid_comp",FACE1=$face1,FACE2=$face2,DATA_DIR$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR $SCRIPT_PATH/jasper/fiducial_submit.pbs
         done
     done
 done
 
 # Noisy
-DATA_PATH=/lustre/home/ekoch/sims/SimSuite8_noise/
+DATA_DIR=/lustre/home/ekoch/sims/SimSuite8_noise/
 ADD_NOISE=T
-OUTPUT_PATH=/lustre/home/ekoch/sims/results/noise_same_results/
+RESULTS_DIR=/lustre/home/ekoch/sims/results/noise_same_results/
 
 for face1 in {0,2}; do
     for face2 in {0,2}; do
-        qsub -N fiducial_noise_comp_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs -F "fid_comp $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH"
+        qsub -N fiducial_noise_comp_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v FIDUCIAL="fid_comp",FACE1=$face1,FACE2=$face2,DATA_DIR$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR $SCRIPT_PATH/jasper/fiducial_submit.pbs
         for fid in {0..4}; do
-            qsub -N fiducial_noise_$fid_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/fiducial_submit.pbs -F "$fid $face1 $face2 $DATA_PATH $ADD_NOISE $OUTPUT_PATH"
+            qsub -N fiducial_noise_$fid_$face1_$face2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v FIDUCIAL="fid_comp",FACE1=$face1,FACE2=$face2,DATA_DIR$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR $SCRIPT_PATH/jasper/fiducial_submit.pbs
         done
     done
 done
