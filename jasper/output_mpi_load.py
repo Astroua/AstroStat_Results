@@ -317,6 +317,8 @@ if __name__ == "__main__":
 
     statistics = statistics_list
 
+    statistics = ["Wavelet", "MVC", "PSpec", "Bispectrum", "SCF", "VCA"]
+
     print "Statistics to run: %s" % (statistics)
     num_statistics = len(statistics)
 

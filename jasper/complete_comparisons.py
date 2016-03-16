@@ -286,12 +286,13 @@ if __name__ == "__main__":
     # statistics =  statistics_list
 
     # Set to run on the 'good' statistics
-    statistics = ["DeltaVariance", "VCS", "VCS_Density", "VCS_Velocity",
-                  "VCA", "PCA", "SCF", "Cramer", "VCS_Break", "Dendrogram_Hist",
-                  "Dendrogram_Num"]
+    # statistics = ["DeltaVariance", "VCS", "VCS_Density", "VCS_Velocity",
+    #               "VCA", "PCA", "SCF", "Cramer", "VCS_Break", "Dendrogram_Hist",
+    #               "Dendrogram_Num"]
+
+    statistics = ["Wavelet", "MVC", "PSpec", "Bispectrum", "SCF", "VCA"]
 
     print "Statistics to run: %s" % (statistics)
-
 
     obs_dir = sys.argv[1]
     sim_dir = sys.argv[2]
