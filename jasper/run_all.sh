@@ -3,7 +3,7 @@
 
 NODE=1
 PROCS=12
-PMEM=4gb
+PMEM=4000mb
 HOURS=72
 
 SCRIPT_PATH=/home/ekoch/code_repos/AstroStat_Results/
