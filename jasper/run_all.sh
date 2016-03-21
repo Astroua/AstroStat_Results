@@ -37,11 +37,11 @@ for face1 in {0,2}; do
 done
 
 # Obs to Obs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/complete_to_complete.pbs
+qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH $SCRIPT_PATH/jasper/complete_to_complete.pbs
 
 # Des to Obs
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/des_to_complete.pbs
+qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH $SCRIPT_PATH/jasper/des_to_complete.pbs
 
 # Obs to Fid
-qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 $SCRIPT_PATH/jasper/complete_to_fid.pbs
+qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH $SCRIPT_PATH/jasper/complete_to_fid.pbs
 
