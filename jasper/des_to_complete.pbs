@@ -14,6 +14,6 @@ source /home/ekoch/.bashrc
 echo "Starting at: `date`"
 for face in {0,2}
     do
-    mpirun -np 11 python2.7 $SCRIPT_PATH/complete_comparisons.py /lustre/home/ekoch/sims/complete/ /lustre/home/ekoch/sims/SimSuite8_noise/ $face Des_to_Obs MPI /lustre/home/ekoch/sims/results/des_to_obs/ SimSuite8_complete
+    mpirun -np 11 python2.7 $SCRIPT_PATH/jasper/complete_comparisons.py /lustre/home/ekoch/sims/complete/ /lustre/home/ekoch/sims/SimSuite8_noise/ $face Des_to_Obs MPI /lustre/home/ekoch/sims/results/des_to_obs/ SimSuite8_complete
 done
 echo "Exited with code $? at: `date`"
