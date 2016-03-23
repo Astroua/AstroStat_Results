@@ -18,14 +18,15 @@ from turbustat.data_reduction import Mask_and_Moments
 np.random.seed(248954785)
 
 
-def timestep_wrapper(fiducial_timestep, testing_timestep, statistics, noise_added):
+def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
+                     noise_added):
 
     # Derive the property arrays assuming uniform noise (for sims)
     fiducial_dataset = load_and_reduce(fiducial_timestep)
     testing_dataset = load_and_reduce(testing_timestep)
 
     if noise_added:
-        vca_break = 1.5
+        vca_break = -0.9
         vcs_break = -0.5
     else:
         vca_break = None
