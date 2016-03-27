@@ -308,7 +308,8 @@ if __name__ == "__main__":
     # comparison face, time steps to use, output file prefix,
     # use multiple cores?, save_direc
 
-    from MPI import MPIPool
+    # from MPI import MPIPool
+    from mpipool import MPIPool
 
     # statistics = ["Wavelet", "MVC", "PSpec", "Bispectrum", "DeltaVariance",
     #               "Genus", "VCS", "VCA", "Tsallis", "PCA", "SCF", "Cramer",
