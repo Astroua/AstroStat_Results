@@ -11,7 +11,8 @@ try:
 except ImportError:
     from multiprocessing import Pool
 
-from MPI import MPIPool
+# from MPI import MPIPool
+from mpipool import MPIPool
 
 from turbustat.statistics import stats_wrapper, statistics_list
 from turbustat.data_reduction import Mask_and_Moments
@@ -182,7 +183,7 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
     testing_dataset = load_and_reduce(fits2)
 
     if add_noise:
-        vca_break = 1.5
+        vca_break = -0.9
         vcs_break = -0.5
     else:
         vca_break = None
