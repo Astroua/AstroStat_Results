@@ -429,7 +429,8 @@ if __name__ == "__main__":
         if pool is not None:
             pool.close()
 
-        complete_distances.to_csv("complete_comparisons.csv")
+        complete_distances.to_csv(os.path.join(output_dir,
+                                               "complete_comparisons.csv"))
 
         # for i, stat in enumerate(complete_distances.keys()):
 
