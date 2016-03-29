@@ -10,7 +10,7 @@ all_files = glob(os.path.join(folder_path, "*.h5"))
 
 # Remove the PDF only ones (relevant results are in the PDF_KS and
 # PDF_Hellinger keywords)
-remove_keys = ["PDF"]
+remove_keys = ["PDF", "PDF_AD"]
 
 # Rename keys
 rename_keys = {"VCS_Density": "VCS_Small_Scale",
