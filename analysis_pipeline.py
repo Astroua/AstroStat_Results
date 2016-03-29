@@ -167,11 +167,11 @@ print "Running metric validation."
 
 subprocess.call(['Rscript',
                  os.path.join(scripts_path, "noise_validation.r"),
-                 path, "5000"])
+                 path, "10000"])
 
 subprocess.call(['Rscript',
                  os.path.join(scripts_path, "signal_validation.r"),
-                 path, "5000"])
+                 path, "10000"])
 
 # Finally, create the model plots
 
