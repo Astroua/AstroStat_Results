@@ -187,7 +187,7 @@ if not os.path.exists(os.path.join(path, "Model_Plots")):
     os.mkdir(os.path.join(path, "Model_Plots"))
 
 effect_plots("DataforFits.csv", "ResultsFactorial.csv", save=True,
-             out_path='Model Plots/')
+             out_path='Model_Plots')
 
 # Only show results of the good statistics
 good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
