@@ -123,14 +123,27 @@ for fil in os.listdir(hdf5_path):
 
 # Now make the distance plots.
 
-print "Making distance plots."
+print("Making distance plots.")
 
-if not os.path.exists(os.path.join(path, "Distance Plots")):
-    os.mkdir(os.path.join(path, "Distance Plots"))
+if not os.path.exists(os.path.join(path, "Distance_Plots")):
+    os.mkdir(os.path.join(path, "Distance_Plots"))
 
 ta.comparison_plot(path, comparisons=good_comparison,
-                   out_path=os.path.join(path, "Distance Plots/"),
+                   out_path=os.path.join(path, "Distance_Plots"),
                    design_matrix=design_matrix)
+
+if not os.path.exists(os.path.join(path, "Distance_Plots_Paper")):
+    os.mkdir(os.path.join(path, "Distance_Plots_Paper"))
+
+if "0_0" in good_comparison and "2_2" in good_comparison:
+
+    ta.comparison_plot(path, comparisons=["0_0", "2_2"],
+                       out_path=os.path.join(path, "Distance_Plots_Paper"),
+                       design_matrix=design_matrix,
+                       num_fids=5)
+else:
+    Warning("Need 0_0 and 2_2 comparisons to reproduce paper distance"
+            " figures.")
 
 # Run the R-script to fit the data to the model
 
@@ -170,8 +183,8 @@ execfile(os.path.join(scripts_path, "effect_plots.py"))
 
 # statistics_list.remove("PDF_AD")
 
-if not os.path.exists(os.path.join(path, "Model Plots")):
-    os.mkdir(os.path.join(path, "Model Plots"))
+if not os.path.exists(os.path.join(path, "Model_Plots")):
+    os.mkdir(os.path.join(path, "Model_Plots"))
 
 effect_plots("DataforFits.csv", "ResultsFactorial.csv", save=True,
              out_path='Model Plots/')
@@ -187,6 +200,6 @@ good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
 
 map_all_results("ResultsFactorial.csv", normed=False, max_order=2,
                 save_name="map_all_results.pdf",
-                out_path='Model Plots/', statistics=good_stats)
+                out_path='Model_Plots', statistics=good_stats)
 
-print "Finished!"
+print("Finished!")
