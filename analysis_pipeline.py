@@ -176,7 +176,7 @@ effect_plots("DataforFits.csv", "ResultsFactorial.csv", save=True,
 # Only show results of the good statistics
 good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
               "Dendrogram_Num", "PCA", "PDF_Hellinger", "SCF", "VCA", "VCS",
-              "VCS_Density", "VCS_Velocity", "Skewness", "Kurtosis"]
+              "VCS_Small_Scale", "VCS_Large_Scale", "Skewness", "Kurtosis"]
 
 # THE ASPECT RATIO IS FUNKY
 # NEED TO ADJUST BY HAND
