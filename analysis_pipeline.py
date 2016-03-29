@@ -21,8 +21,7 @@ def timestring():
 
 # Specify path with results
 
-path = sys.argv[1]
-path = path.rstrip("/")
+path = os.path.abspath(sys.argv[1])
 
 if path.split("/")[-1] == "HDF5_files":
     hdf5_path = path + "/"
@@ -47,6 +46,8 @@ path = os.path.join(path, run_name+"_"+timestring())
 os.mkdir(path)
 shutil.move(hdf5_path, path)
 hdf5_path = os.path.join(path, "HDF5_files")
+
+os.chdir(path)
 
 # Convert into combined csv files.
 
@@ -112,11 +113,13 @@ except StandardError as err:
 # Next convert the fiducial comparisons
 
 for fil in os.listdir(hdf5_path):
-    if os.path.isfile(hdf5_path+fil) and "fid_comp" in fil:
+    full_file = os.path.join(hdf5_path, fil)
+    if os.path.isfile(full_file) and "fid_comp" in fil:
+        print("Fiducial comparison: " + full_file)
+        out_name = ta.convert_fiducial(full_file,
+                                       return_name=True)
 
-        out_name = ta.convert_fiducial(hdf5_path+fil, return_name=True)
-
-        shutil.move(out_name, path)
+        # shutil.move(out_name, path)
 
 # Now make the distance plots.
 
@@ -126,7 +129,7 @@ if not os.path.exists(os.path.join(path, "Distance Plots")):
     os.mkdir(os.path.join(path, "Distance Plots"))
 
 ta.comparison_plot(path, comparisons=good_comparison,
-                   out_path=path+"Distance Plots/",
+                   out_path=os.path.join(path, "Distance Plots/"),
                    design_matrix=design_matrix)
 
 # Run the R-script to fit the data to the model
@@ -151,11 +154,11 @@ print "Running metric validation."
 
 subprocess.call(['Rscript',
                  os.path.join(scripts_path, "noise_validation.r"),
-                 path, "10000"])
+                 path, "5000"])
 
 subprocess.call(['Rscript',
                  os.path.join(scripts_path, "signal_validation.r"),
-                 path, "10000"])
+                 path, "5000"])
 
 # Finally, create the model plots
 
