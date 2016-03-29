@@ -168,7 +168,7 @@ execfile(os.path.join(scripts_path, "effect_plots.py"))
 
 # Remove PDF_AD from the list
 
-statistics_list.remove("PDF_AD")
+# statistics_list.remove("PDF_AD")
 
 if not os.path.exists(os.path.join(path, "Model Plots")):
     os.mkdir(os.path.join(path, "Model Plots"))
