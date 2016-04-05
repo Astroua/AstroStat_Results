@@ -326,7 +326,7 @@ if __name__ == "__main__":
             sys.exit(0)
     elif multiproc == "noMPI":
         from multiprocessing import Pool
-        pool = Pool(nprocesses=12)
+        pool = Pool(processes=12)
     else:
         pool = None
 
