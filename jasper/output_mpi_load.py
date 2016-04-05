@@ -309,7 +309,7 @@ if __name__ == "__main__":
     # use multiple cores?, save_direc
 
     # from MPI import MPIPool
-    from mpipool import MPIPool
+    # from mpipool import MPIPool
 
     # statistics = ["Wavelet", "MVC", "PSpec", "Bispectrum", "DeltaVariance",
     #               "Genus", "VCS", "VCA", "Tsallis", "PCA", "SCF", "Cramer",
@@ -381,7 +381,7 @@ if __name__ == "__main__":
 
     if MULTICORE:
 
-        use_mpi = True
+        use_mpi = False
         if use_mpi:
             pool = MPIPool(loadbalance=False)
 
@@ -392,7 +392,7 @@ if __name__ == "__main__":
         else:
             from multiprocessing import Pool
             # Default to 10 for now. Will change if this works.
-            pool = Pool(processes=10)
+            pool = Pool(processes=12)
     else:
         pool = None
 

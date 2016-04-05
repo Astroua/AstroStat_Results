@@ -13,5 +13,5 @@ source /home/ekoch/.bashrc
 
 echo "Starting at: `date`"
 echo "Given parameters: $DATA_DIR, $FIDUCIAL, $FACE_1, $FACE_2, $ADD_NOISE, $RESULTS_DIR"
-mpiexec python2.7 $SCRIPT_PATH/jasper/output_mpi_load.py $DATA_DIR $FIDUCIAL $FACE_1 $FACE_2 max SimSuite8 T $ADD_NOISE $RESULTS_DIR
+python2.7 $SCRIPT_PATH/jasper/output_mpi_load.py $DATA_DIR $FIDUCIAL $FACE_1 $FACE_2 max SimSuite8 T $ADD_NOISE $RESULTS_DIR
 echo "Exited with code $? at: `date`"
