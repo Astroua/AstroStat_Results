@@ -1,22 +1,11 @@
 
 import numpy as np
 from astropy.io.fits import getdata
-from astropy.wcs import WCS
 from pandas import DataFrame
-from itertools import combinations, izip, repeat
+from itertools import combinations, repeat
 from datetime import datetime
-import subprocess
-try:
-    from interruptible_pool import InterruptiblePool as Pool
-except ImportError:
-    from multiprocessing import Pool
-
-# from MPI import MPIPool
-from mpipool import MPIPool
 
 from turbustat.statistics import stats_wrapper, statistics_list
-from turbustat.data_reduction import Mask_and_Moments
-from spectral_cube import SpectralCube, LazyMask
 
 '''
 COMPLETE comparisons.
@@ -328,6 +317,7 @@ if __name__ == "__main__":
     # Toggle the pool on here
 
     if multiproc == "MPI":
+        from mpipool import MPIPool
         pool = MPIPool(loadbalance=False)
 
         if not pool.is_master():
@@ -335,6 +325,7 @@ if __name__ == "__main__":
             pool.wait()
             sys.exit(0)
     elif multiproc == "noMPI":
+        from multiprocessing import Pool
         pool = Pool(nprocesses=12)
     else:
         pool = None
