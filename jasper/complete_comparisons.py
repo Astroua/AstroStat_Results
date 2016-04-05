@@ -52,7 +52,7 @@ def obs_to_obs(file_list, statistics, pool=None):
 
     generator = zip(combinations(file_list, 2),
                     repeat(statistics),
-                    repeat(True),
+                    repeat(False),
                     dendro_saves)
 
     if pool is None:
@@ -183,11 +183,11 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
     testing_dataset = load_and_reduce(fits2)
 
     if add_noise:
-        vca_break = -0.9
+        vca_break = [None, -0.7]
         vcs_break = -0.5
     else:
-        vca_break = None
-        vcs_break = -0.8
+        vca_break = [-0.7, -0.7]
+        vcs_break = -0.5
 
     distances = stats_wrapper(fiducial_dataset, testing_dataset,
                               statistics=statistics, multicore=True,
