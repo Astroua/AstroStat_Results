@@ -11,6 +11,10 @@ Expects the following folder structure before running:
 
 The design matrix (saved in csv format) should be in the parent directory
 (given as sys.argv[1]).
+
+The obs to fiducial comparisons require the noise added simulation results
+to be copied. The path to these results is given by sys.argv[2].
+
 '''
 
 # Create data tables of the observational results
@@ -25,6 +29,7 @@ from turbustat.analysis import convert_format, comparison_plot
 
 
 path_to_data = os.path.abspath(sys.argv[1])
+path_to_noise_sim_results = os.path.abspath(sys.argv[2])
 design_matrix = os.path.join(path_to_data, "Design7Matrix.csv")
 
 # Obs to Fids
@@ -43,6 +48,16 @@ shutil.move(os.path.join(obsfid_path, "HDF5/complete_distances_face_0.csv"),
 # Face 2
 convert_format(os.path.join(obsfid_path, "HDF5"), 2)
 shutil.move(os.path.join(obsfid_path, "HDF5/complete_distances_face_2.csv"),
+            obsfid_path)
+
+# Now move the noisy simulation comparisons into the folder
+shutil.copy(os.path.join(path_to_noise_sim_results, "distances_0_0.csv"),
+            obsfid_path)
+shutil.copy(os.path.join(path_to_noise_sim_results, "distances_2_2.csv"),
+            obsfid_path)
+shutil.copy(os.path.join(path_to_noise_sim_results, "fiducials_0_0.csv"),
+            obsfid_path)
+shutil.copy(os.path.join(path_to_noise_sim_results, "fiducials_2_2.csv"),
             obsfid_path)
 
 # Des to Obs
