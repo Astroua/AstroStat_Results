@@ -1,6 +1,6 @@
 
 import numpy as np
-import turbustat.analysis as ta
+import analysis as ta
 from turbustat.statistics import statistics_list
 import os
 import subprocess
@@ -42,7 +42,7 @@ scripts_path = sys.argv[3]
 run_name = sys.argv[4]
 
 # Redefine the path with the timestamped output folder
-path = os.path.join(path, run_name+"_"+timestring())
+path = os.path.join(path, run_name + "_" + timestring())
 os.mkdir(path)
 shutil.move(hdf5_path, path)
 hdf5_path = os.path.join(path, "HDF5_files")
@@ -177,8 +177,6 @@ subprocess.call(['Rscript',
 
 print "Creating model plots."
 
-execfile(os.path.join(scripts_path, "effect_plots.py"))
-
 # Remove PDF_AD from the list
 
 # statistics_list.remove("PDF_AD")
@@ -186,8 +184,8 @@ execfile(os.path.join(scripts_path, "effect_plots.py"))
 if not os.path.exists(os.path.join(path, "Model_Plots")):
     os.mkdir(os.path.join(path, "Model_Plots"))
 
-effect_plots("DataforFits.csv", "ResultsFactorial.csv", save=True,
-             out_path='Model_Plots')
+ta.effect_plots("DataforFits.csv", "ResultsFactorial.csv", save=True,
+                out_path='Model_Plots')
 
 # Only show results of the good statistics
 good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
@@ -198,8 +196,8 @@ good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
 # NEED TO ADJUST BY HAND
 # Use: p.ion(), and set save_name=None to alter by-hand
 
-map_all_results("ResultsFactorial.csv", normed=False, max_order=2,
-                save_name="map_all_results.pdf",
-                out_path='Model_Plots', statistics=good_stats)
+ta.map_all_results("ResultsFactorial.csv", normed=False, max_order=2,
+                   save_name="map_all_results.pdf",
+                   out_path='Model_Plots', statistics=good_stats)
 
 print("Finished!")
