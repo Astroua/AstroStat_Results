@@ -45,25 +45,23 @@ def convert_format(path, face1, face2=None, design=None, output_type="csv",
         Append on columns with fiducial numbers copy
     '''
 
-    if path[-1] != "/":
-        path += "/"
-
     if face2 is not None:
-        files = [path + f for f in os.listdir(path)
-                 if os.path.isfile(path + f)
-                 and "_"+str(face1)+"_"+str(face2)+"_" in f
-                 and "fid_comp" not in f]
+        files = [os.path.join(path, f) for f in os.listdir(path)
+                 if os.path.isfile(path + f) and
+                 "_" + str(face1) + "_" + str(face2) + "_" in f and
+                 "fid_comp" not in f]
     else:
         # Observational comparisons explicitly have 'face' in filename
-        files = [path + f for f in os.listdir(path)
-                 if os.path.isfile(path + f)
-                 and "face_"+str(face1) in f
-                 and "fid_comp" not in f]
+        files = [os.path.join(path, f) for f in os.listdir(path)
+                 if os.path.isfile(path + f) and
+                 "face_" + str(face1) in f and
+                 "fid_comp" not in f]
+
     files.sort()
-    print "Files used: %s" % (files)
+    print("Files used: %s" % (files))
 
     if len(files) == 0:
-        raise StandardError("No files found for "+str(face1)+" and " +
+        raise StandardError("No files found for " + str(face1) + " and " +
                             str(face2))
 
     if design is not None:
@@ -104,7 +102,7 @@ def convert_format(path, face1, face2=None, design=None, output_type="csv",
 
         if append_comp:
             data_columns["Fiducial"] = \
-                Series(np.asarray([i]*len(index)).T, index=index)
+                Series(np.asarray([i] * len(index)).T, index=index)
             data_columns["Designs"] = Series(index.T, index=index)
 
         if i == 0:  # Create dataframe
@@ -113,15 +111,15 @@ def convert_format(path, face1, face2=None, design=None, output_type="csv",
             df = concat([df, data_columns])
 
     if face2 is not None:
-        filename = "distances_"+str(face1)+"_"+str(face2)
+        filename = "distances_" + str(face1) + "_" + str(face2)
     else:
-        filename = "complete_distances_face_"+str(face1)
+        filename = "complete_distances_face_" + str(face1)
 
     if "Name" in df.keys():
         del df["Name"]
 
     if output_type == "csv":
-        df.to_csv(path+filename+".csv")
+        df.to_csv(path + filename + ".csv")
 
 
 def convert_fiducial(filename, output_type="csv", decimal_places=8,
@@ -156,8 +154,8 @@ def convert_fiducial(filename, output_type="csv", decimal_places=8,
 
     if append_comp:
         fids = []
-        for fid, num in zip(np.arange(0, num_fids-1),
-                            np.arange(num_fids-1, 0, -1)):
+        for fid, num in zip(np.arange(0, num_fids - 1),
+                            np.arange(num_fids - 1, 0, -1)):
             for _ in range(num):
                 fids.append(fid)
 
@@ -171,7 +169,7 @@ def convert_fiducial(filename, output_type="csv", decimal_places=8,
         raise StandardError("Could not find a face comparison match for " +
                             filename)
 
-    output_name = "fiducials"+comp[:-1]+"."+output_type
+    output_name = "fiducials" + comp[:-1] + "." + output_type
 
     df.to_csv(output_name)
 
@@ -221,10 +219,12 @@ def concat_convert_HDF5(path, face=None, combine_axis=0, average_axis=None,
             raise TypeError("face must be an integer.")
 
         hdf5_files = \
-            glob.glob(os.path.join(path, "*face_"+str(face)+"*"+extension))
+            glob.glob(os.path.join(path, "*face_" +
+                                   str(face) + "*" + extension))
 
         if len(hdf5_files) == 0:
-            raise Warning("Did not find any HDF5 files in the path %s" % (path))
+            raise Warning(
+                "Did not find any HDF5 files in the path %s" % (path))
 
     if statistics is None:
 
@@ -241,7 +241,8 @@ def concat_convert_HDF5(path, face=None, combine_axis=0, average_axis=None,
                 statistics = list(set(statistics) & set(individ_stats))
 
         if len(statistics) == 0:
-            raise Warning("There are no statistics that are contained in every file.")
+            raise Warning(
+                "There are no statistics that are contained in every file.")
 
         statistics = [stat[1:] for stat in statistics]
 
@@ -279,7 +280,7 @@ def concat_convert_HDF5(path, face=None, combine_axis=0, average_axis=None,
             split_dfs = []
             for i in range(num_splits):
 
-                split_df = stats_df[i*num:(i+1)*num].copy()
+                split_df = stats_df[i * num:(i + 1) * num].copy()
                 split_df = split_df.sort(columns=['Order'])
 
                 split_dfs.append(split_df)
@@ -295,7 +296,8 @@ def concat_convert_HDF5(path, face=None, combine_axis=0, average_axis=None,
         return master_df
     else:
         if face is not None:
-            master_df.to_csv(os.path.join(path, "distances_"+str(face)+".csv"))
+            master_df.to_csv(os.path.join(
+                path, "distances_" + str(face) + ".csv"))
         else:
             master_df.to_csv(os.path.join(path, "combined_distances.csv"))
 
@@ -312,3 +314,44 @@ def trunc_float(a, places=8):
     a_round = str(a_round)[:slen]
 
     return float(a_round)
+
+
+def timestep_choose(data, mode='mean', tsteps=None):
+    '''
+    From a table of timesteps vs. design, extract the relevant value for each
+    design.
+
+    This can be:
+     * mean over all timesteps
+     * single value
+
+    Parameters
+    ----------
+    data : pandas.DataFrame
+        Timestep vs. design distances
+
+    Returns
+    -------
+    values : pandas.DataFrame
+        One distance value for each design.
+    '''
+
+    if mode == "mean":
+        values = data.mean(axis=1)
+    elif mode == "choice":
+        if tsteps is None:
+            raise ValueError("tsteps must be given when mode is 'choice'.")
+        elif len(tsteps) != data.shape[0]:
+            raise ValueError("tsteps must have a length ({0}) equal to the"
+                             " number of design "
+                             "simulations ({1}).".format(len(tsteps),
+                                                         data.shape[0]))
+
+        values = []
+        for i, tstep in enumerate(tsteps):
+            values.append(data.T[i][tstep])
+        values = Series(values)
+    else:
+        raise ValueError("mode must be 'mean' or 'choice'.")
+
+    return values
