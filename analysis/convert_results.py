@@ -15,9 +15,9 @@ all_comparisons = ["_0_0_", "_0_1_", "_0_2_", "_1_0_", "_1_1_",
                    "_1_2_", "_2_0_", "_2_1_", "_2_2_"]
 
 
-def convert_format(path, face1, face2=None, design=None, output_type="csv",
-                   parameters=None, decimal_places=8, append_comp=True,
-                   keep_index=True):
+def convert_format(path, face1, face2=None, design=None, mode='mean',
+                   output_type="csv", parameters=None, decimal_places=8,
+                   append_comp=True, keep_index=True, **kwargs):
     '''
     Takes all HDF5 files in given path comparing face1 to face2 and combines
     them into a single file.
@@ -83,7 +83,7 @@ def convert_format(path, face1, face2=None, design=None, output_type="csv",
         for key in store.keys():
             data = store[key].sort(axis=0).sort(axis=1)
             index = data.index
-            mean_data = data.mean(axis=1)
+            mean_data = timestep_choose(data, mode=mode, **kwargs)
             data_columns[key[1:]] = trunc_float(mean_data, decimal_places)
         store.close()
 
@@ -123,7 +123,8 @@ def convert_format(path, face1, face2=None, design=None, output_type="csv",
 
 
 def convert_fiducial(filename, output_type="csv", decimal_places=8,
-                     append_comp=True, num_fids=5, return_name=True):
+                     append_comp=True, num_fids=5, return_name=True,
+                     mode='mean', **kwargs):
     '''
     Converts the fiducial comparison HDF5 files into a CSV file.
 
@@ -145,7 +146,7 @@ def convert_fiducial(filename, output_type="csv", decimal_places=8,
     data_columns = dict()
     for key in store.keys():
         data = store[key].sort(axis=1)
-        mean_data = data.mean(axis=1)
+        mean_data = timestep_choose(data, mode=mode, **kwargs)
         data_columns[key[1:]] = trunc_float(mean_data, decimal_places)
         comp_fids = store[key].index
     store.close()
@@ -177,9 +178,10 @@ def convert_fiducial(filename, output_type="csv", decimal_places=8,
         return output_name
 
 
-def concat_convert_HDF5(path, face=None, combine_axis=0, average_axis=None,
-                        interweave=True, statistics=None, extension="h5",
-                        return_df=False, output_type="csv"):
+def concat_convert_HDF5(path, face=None, combine_axis=0, mode='mean',
+                        average_axis=None, interweave=True, statistics=None,
+                        extension="h5", return_df=False, output_type="csv",
+                        **kwargs):
     '''
     A more general function for combining sets of results. The output format
     defaults to a csv file and should be compatible with the plotting routines
@@ -259,6 +261,9 @@ def concat_convert_HDF5(path, face=None, combine_axis=0, average_axis=None,
         if average_axis is not None:
             for i in range(len(dfs)):
                 dfs[i] = DataFrame(dfs[i].mean(average_axis))
+                dfs[i] = \
+                    DataFrame(timestep_choose(dfs[i],
+                                              avg_axis=average_axis, **kwargs))
 
         for i in range(len(dfs)):
             num = dfs[i].shape[0]
@@ -316,7 +321,7 @@ def trunc_float(a, places=8):
     return float(a_round)
 
 
-def timestep_choose(data, mode='mean', tsteps=None):
+def timestep_choose(data, mode='mean', tsteps=None, avg_axis=None):
     '''
     From a table of timesteps vs. design, extract the relevant value for each
     design.
@@ -337,7 +342,7 @@ def timestep_choose(data, mode='mean', tsteps=None):
     '''
 
     if mode == "mean":
-        values = data.mean(axis=1)
+        values = data.mean(axis=avg_axis)
     elif mode == "choice":
         if tsteps is None:
             raise ValueError("tsteps must be given when mode is 'choice'.")
