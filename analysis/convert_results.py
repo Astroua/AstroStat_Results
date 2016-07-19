@@ -47,13 +47,13 @@ def convert_format(path, face1, face2=None, design=None, mode='mean',
 
     if face2 is not None:
         files = [os.path.join(path, f) for f in os.listdir(path)
-                 if os.path.isfile(path + f) and
+                 if os.path.isfile(os.path.join(path, f)) and
                  "_" + str(face1) + "_" + str(face2) + "_" in f and
                  "fid_comp" not in f]
     else:
         # Observational comparisons explicitly have 'face' in filename
         files = [os.path.join(path, f) for f in os.listdir(path)
-                 if os.path.isfile(path + f) and
+                 if os.path.isfile(os.path.join(path, f)) and
                  "face_" + str(face1) in f and
                  "fid_comp" not in f]
 
