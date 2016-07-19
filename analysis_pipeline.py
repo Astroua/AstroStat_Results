@@ -50,14 +50,20 @@ if tstep_choice == "mean":
 elif tstep_choice == "freefall":
     mode = 'choice'
     # Timesteps for Simulation set 8 (used in the Tools 2016 paper).
-    des_tsteps = [25, 26, 21, 21, 23, 25, 21, 21, 25, 26, 21, 22, 23, 26, 21,
+    des_tsteps = \
+        np.array([25, 26, 21, 21, 23, 25, 21, 21, 25, 26, 21, 22, 23, 26, 21,
                   21, 30, 30, 27, 28, 30, 30, 27, 23, 30, 30, 27, 25, 30, 30,
-                  24, 25]
+                  24, 25])
     # Make sure this matches the number of design sims
     assert len(des_tsteps) == 32
 
-    fid_tsteps = [25, 24, 26, 26, 26]
+    fid_tsteps = np.array([25, 24, 26, 26, 26])
     assert len(fid_tsteps) == 5
+
+    # Subtract the 'zeroth' timestep to get the right index
+    des_tsteps -= 21
+    fid_tsteps -= 21
+
 else:
     raise ValueError("tstep_choice must be 'mean' or 'freefall'")
 
@@ -138,6 +144,8 @@ try:
     good_comparison.append("2_2")
 except StandardError as err:
     print err
+
+print good_comparison
 
 # Next convert the fiducial comparisons
 
