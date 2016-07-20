@@ -119,7 +119,7 @@ def convert_format(path, face1, face2=None, design=None, mode='mean',
         del df["Name"]
 
     if output_type == "csv":
-        df.to_csv(path + filename + ".csv")
+        df.to_csv(os.path.join(path, filename + ".csv"))
 
 
 def convert_fiducial(filename, output_type="csv", decimal_places=8,
@@ -321,7 +321,7 @@ def trunc_float(a, places=8):
     return float(a_round)
 
 
-def timestep_choose(data, mode='mean', tsteps=None, avg_axis=None):
+def timestep_choose(data, mode='mean', tsteps=None, avg_axis=1):
     '''
     From a table of timesteps vs. design, extract the relevant value for each
     design.
@@ -346,16 +346,22 @@ def timestep_choose(data, mode='mean', tsteps=None, avg_axis=None):
     elif mode == "choice":
         if tsteps is None:
             raise ValueError("tsteps must be given when mode is 'choice'.")
-        elif len(tsteps) != data.shape[0]:
-            raise ValueError("tsteps must have a length ({0}) equal to the"
-                             " number of design "
-                             "simulations ({1}).".format(len(tsteps),
-                                                         data.shape[0]))
 
         values = []
+        index = data.index
+
+        # if len(tsteps) != len(np.unique(index)):
+        #     raise ValueError("tsteps must have a length ({0}) equal to the"
+        #                      " number of unique indices in the dataframe"
+        #                      " ({1}).".format(len(tsteps),
+        #                                       len(np.unique(index))))
+
+        values = np.zeros_like(np.array(index))
         for i, tstep in enumerate(tsteps):
-            values.append(data.T[i][tstep])
-        values = Series(values)
+            for j in np.where(index == i):
+                values[j] = data.T[j][tstep]
+        values = Series(values, index=index)
+
     else:
         raise ValueError("mode must be 'mean' or 'choice'.")
 
