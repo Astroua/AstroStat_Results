@@ -1,7 +1,7 @@
 
 import numpy as np
 from astropy.io.fits import getdata
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 from itertools import combinations, repeat
 from datetime import datetime
 
@@ -420,8 +420,17 @@ if __name__ == "__main__":
         if pool is not None:
             pool.close()
 
-        complete_distances.to_csv(os.path.join(output_dir,
-                                               "complete_comparisons.csv"))
+        # Now check if there is an existing copy. If so, open it, split out
+        # the column names not in the new table, then merge and overwrite.
+        filename = os.path.join(output_dir, "complete_comparisons.csv")
+        if os.path.exists(filename):
+            old_vals = read_csv(filename)
+
+            for col in old_vals.columns:
+                if col not in complete_distances.columns:
+                    complete_distances[col] = old_vals[col]
+
+        complete_distances.to_csv(filename)
 
         # for i, stat in enumerate(complete_distances.keys()):
 
