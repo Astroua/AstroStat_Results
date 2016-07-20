@@ -27,7 +27,7 @@ def obs_to_obs(file_list, statistics, pool=None):
     num_comp = len(file_list) * (len(file_list) - 1) / 2
 
     distances = \
-        DataFrame([(i, j) for i, j in
+        DataFrame([(i.split("/")[-1], j.split("/")[-1]) for i, j in
                    combinations(file_list, 2)],
                   columns=['Fiducial1', 'Fiducial2'])
 
