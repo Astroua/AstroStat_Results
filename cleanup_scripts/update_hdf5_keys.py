@@ -21,12 +21,12 @@ for f in all_files:
 
     # Removals
     for key in remove_keys:
-        if "/"+key in store.keys():
+        if "/" + key in store.keys():
             del store[key]
 
     # Rename
     for old_key in rename_keys:
-        if "/"+old_key in store.keys():
+        if "/" + old_key in store.keys():
             store[rename_keys[old_key]] = store[old_key].copy()
             del store[old_key]
 

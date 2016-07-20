@@ -9,9 +9,10 @@ folder_path = sys.argv[1]
 faces = ["_0_0_", "_0_2_", "_2_0_", "_2_2_"]
 
 for face in faces:
-    old_comp = glob(os.path.join(folder_path, "*_comparisons_*"+face+"*.h5"))
+    old_comp = glob(os.path.join(folder_path,
+                                 "*_comparisons_*" + face + "*.h5"))
     new_comp = glob(os.path.join(folder_path,
-                                 "*8_fiducialfid_comp"+face+"*.h5"))
+                                 "*8_fiducialfid_comp" + face + "*.h5"))
 
     print(old_comp)
     print(new_comp)
@@ -26,7 +27,7 @@ for face in faces:
             continue
         new_result[key] = old_result[key].copy()
 
-    print("New file keys: "+str(new_result.keys()))
+    print("New file keys: " + str(new_result.keys()))
 
     old_result.close()
     new_result.close()
