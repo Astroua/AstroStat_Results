@@ -145,8 +145,6 @@ try:
 except StandardError as err:
     print err
 
-print good_comparison
-
 # Next convert the fiducial comparisons
 
 for fil in os.listdir(hdf5_path):
