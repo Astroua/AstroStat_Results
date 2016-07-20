@@ -261,9 +261,9 @@ def concat_convert_HDF5(path, face=None, combine_axis=0, mode='mean',
         if average_axis is not None:
             for i in range(len(dfs)):
                 dfs[i] = DataFrame(dfs[i].mean(average_axis))
-                dfs[i] = \
-                    DataFrame(timestep_choose(dfs[i],
-                                              avg_axis=average_axis, **kwargs))
+                # dfs[i] = \
+                #     DataFrame(timestep_choose(dfs[i],
+                #                               avg_axis=average_axis, **kwargs))
 
         for i in range(len(dfs)):
             num = dfs[i].shape[0]
