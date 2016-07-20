@@ -28,12 +28,12 @@ def obs_to_obs(file_list, statistics, pool=None):
 
     distances = \
         DataFrame([(i, j) for i, j in
-                  combinations(file_list, 2)],
+                   combinations(file_list, 2)],
                   columns=['Fiducial1', 'Fiducial2'])
 
     dendro_saves = \
-        [(i[:-5]+"_dendrostat.pkl",
-          j[:-5]+"_dendrostat.pkl")
+        [(i[:-5] + "_dendrostat.pkl",
+          j[:-5] + "_dendrostat.pkl")
          for i, j in combinations(file_list, 2)]
 
     for stat in statistics:
@@ -86,7 +86,7 @@ def obs_to_fid(obs_list, fiducial_dict, statistics, pool=None):
     for posn, obs in enumerate(obs_list):
 
         # Give dendrogram save file.
-        dendro_saves = [None, obs[:-5]+"_dendrostat.pkl"]
+        dendro_saves = [None, obs[:-5] + "_dendrostat.pkl"]
 
         # Create generator
         gen = zip(zip(fiducial_dict.values(), repeat(obs)),
@@ -94,8 +94,8 @@ def obs_to_fid(obs_list, fiducial_dict, statistics, pool=None):
                   repeat(True),
                   repeat(dendro_saves))
 
-
-        print "On "+str(posn+1)+"/"+str(len(obs_list))+" at "+str(datetime.now())
+        print("On " + str(posn + 1) + "/" + str(len(obs_list)) + " at " +
+              str(datetime.now()))
 
         if pool is not None:
             outputs = pool.map(single_input, gen)
@@ -134,7 +134,7 @@ def des_to_obs(obs_list, design_dict, statistics, pool=None):
     for posn, obs in enumerate(obs_list):
 
         # Give dendrogram save file.
-        dendro_saves = [obs[:-5]+"_dendrostat.pkl", None]
+        dendro_saves = [obs[:-5] + "_dendrostat.pkl", None]
 
         # Create generator
         gen = zip(zip(repeat(obs), design_dict.values()),
@@ -142,7 +142,8 @@ def des_to_obs(obs_list, design_dict, statistics, pool=None):
                   repeat(True),
                   repeat(dendro_saves))
 
-        print "On "+str(posn+1)+"/"+str(len(obs_list))+" at "+str(datetime.now())
+        print("On " + str(posn + 1) + "/" + str(len(obs_list)) + " at " +
+              str(datetime.now()))
 
         if pool is not None:
             outputs = pool.map(single_input, gen)
@@ -210,11 +211,13 @@ def load_and_reduce(filename, moment_folder="moments/"):
 
     for dic_lab, file_lab in zip(labels, file_labels):
         file_dict[dic_lab] = \
-            list(getdata(prefix_direc+moment_folder+sim_name+file_lab+".fits", 0, header=True))
+            list(getdata(prefix_direc + moment_folder +
+                         sim_name + file_lab + ".fits", 0, header=True))
 
         # And the errors
-        file_dict[dic_lab+"_error"] = \
-            list(getdata(prefix_direc+moment_folder+sim_name+file_lab+".fits", 1, header=True))
+        file_dict[dic_lab + "_error"] = \
+            list(getdata(prefix_direc + moment_folder +
+                         sim_name + file_lab + ".fits", 1, header=True))
 
     return file_dict
 
@@ -245,18 +248,18 @@ def sort_sim_files(sim_list, sim_labels=np.arange(0, 5),
 
     for sim in sim_list:
         for label in sim_labels:
-            if sim_type+str(label)+"_" in sim:
+            if sim_type + str(label) + "_" in sim:
                 key = label
                 break
         else:
-            raise TypeError("Cannot find appropriate label for: "+sim)
+            raise TypeError("Cannot find appropriate label for: " + sim)
 
         for time in timestep_labels:
-            if "_00"+str(time)+"_" in sim:
+            if "_00" + str(time) + "_" in sim:
                 tstep = time
                 break
         else:
-            raise TypeError("Cannot find appropriate timestep for: "+sim)
+            raise TypeError("Cannot find appropriate timestep for: " + sim)
 
         # Remove empty timesteps
         sim_dict[key] =\
@@ -310,7 +313,7 @@ if __name__ == "__main__":
 
     # Load the list of complete cubes in
 
-    obs_cubes = [obs_dir+f for f in os.listdir(obs_dir) if f[-4:] == 'fits']
+    obs_cubes = [obs_dir + f for f in os.listdir(obs_dir) if f[-4:] == 'fits']
 
     # sim_dir = "/Volumes/RAIDers_of_the_lost_ark/SimSuite8/"
 
@@ -333,8 +336,8 @@ if __name__ == "__main__":
     # Do the actual comparisons
 
     if comparison == "Obs_to_Fid":
-        sim_cubes = [sim_dir+f for f in os.listdir(sim_dir) if "Fiducial" in f
-                     and "_0"+face+"_" in f]
+        sim_cubes = [sim_dir + f for f in os.listdir(sim_dir)
+                     if "Fiducial" in f and "_0" + face + "_" in f]
 
         sim_dict = sort_sim_files(sim_cubes)
 
@@ -357,8 +360,8 @@ if __name__ == "__main__":
 
         for fid, distances in enumerate(output_storage):
 
-            store = HDFStore(output_dir+save_name+"_fiducial_"+str(fid)+
-                             "_face_"+str(face)+".h5")
+            store = HDFStore(output_dir + save_name + "_fiducial_" + str(fid) +
+                             "_face_" + str(face) + ".h5")
 
             for key in distances.keys():
 
@@ -373,8 +376,8 @@ if __name__ == "__main__":
             store.close()
 
     elif comparison == "Des_to_Obs":
-        sim_cubes = [sim_dir+f for f in os.listdir(sim_dir) if "Design" in f
-                     and "_0"+face+"_" in f]
+        sim_cubes = [sim_dir + f for f in os.listdir(sim_dir)
+                     if "Design" in f and "_0" + face + "_" in f]
 
         sim_dict = sort_sim_files(sim_cubes, sim_labels=np.arange(0, 32),
                                   sim_type="Design")
@@ -398,8 +401,8 @@ if __name__ == "__main__":
 
         for des, distances in enumerate(output_storage):
 
-            store = HDFStore(output_dir+save_name+"_design_"+str(des)+
-                             "_face_"+str(face)+".h5")
+            store = HDFStore(output_dir + save_name + "_design_" + str(des) +
+                             "_face_" + str(face) + ".h5")
 
             for key in distances.keys():
 
