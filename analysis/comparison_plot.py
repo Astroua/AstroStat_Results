@@ -8,8 +8,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as p
 from pandas import read_csv, DataFrame
 
-from ..statistics import statistics_list
-from .analysis_utils import parameters_dict
+from turbustat.statistics import statistics_list
+from analysis_utils import parameters_dict
 
 
 def comparison_plot(path, num_fids=5, verbose=False,
