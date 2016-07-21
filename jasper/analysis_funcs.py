@@ -197,6 +197,8 @@ def _timestep_sort(d, timesteps, labels=None):
                 for f in d[face][lab]:
                     if matcher in f:
                         match = [f]
+                        if labels is not None:
+                            labels[face][lab] = timesteps[lab]
                         break
                 if match is None:
                     raise Warning("Could not find a match for the timestep"
