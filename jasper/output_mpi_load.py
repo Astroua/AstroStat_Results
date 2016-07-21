@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     statistics = statistics_list
 
-    statistics = ["Wavelet", "MVC", "PSpec", "Bispectrum", "SCF", "VCA"]
+    statistics = ["Wavelet"] #, "MVC", "PSpec", "Bispectrum", "SCF", "VCA"]
 
     print "Statistics to run: %s" % (statistics)
     num_statistics = len(statistics)
@@ -188,6 +188,26 @@ if __name__ == "__main__":
         noise_added = False
     output_direc = str(sys.argv[9])
 
+    # Run on single timesteps when each simulation is at ~ one free fall time
+    if timesteps == "freefall":
+        # These are the output times that correspond to ~ free-fall time
+        des_tsteps = \
+            np.array([25, 26, 21, 21, 23, 25, 21, 21, 25, 26, 21, 22, 23, 26,
+                      21, 21, 30, 30, 27, 28, 30, 30, 27, 23, 30, 30, 27, 25,
+                      30, 30, 24, 25])
+
+        timesteps = dict.fromkeys(np.arange(32))
+        for key, val in zip(timesteps.keys(), des_tsteps):
+            timesteps[key] = val
+
+        # Make sure this matches the number of design sims
+        assert len(timesteps) == 32
+
+        fid_tsteps = {0: 25, 1: 24, 2: 26, 3: 26, 4: 26}
+        assert len(fid_tsteps) == 5
+    else:
+        fid_tsteps = None
+
     # Sigma for COMPLETE NGC1333 data using signal-id (normal dist)
     # Note that the mean is forced to 0
     # rms_noise = 0.1277369117707014 / 2.  # in K
@@ -201,7 +221,7 @@ if __name__ == "__main__":
 
     fiducials, designs, timesteps_labels = \
         files_sorter(PREFIX, timesteps=timesteps,
-                     append_prefix=True)
+                     append_prefix=True, fiducial_timesteps=fid_tsteps)
 
     if MULTICORE:
 
@@ -286,11 +306,12 @@ if __name__ == "__main__":
     for i in range(num_statistics):
         # If timesteps is 'max', there will be different number of labels
         # in this case, don't bother specifying column names.
-        if 'max' not in timesteps:
+        # This also applies for when timesteps is given as free-fall.
+        if 'max' in timesteps or isinstance(timesteps, dict):
+            df = DataFrame(distances_storage[i, :, :], index=simulation_runs)
+        else:
             df = DataFrame(distances_storage[i, :, :], index=simulation_runs,
                            columns=timesteps_labels[0][face])
-        else:
-            df = DataFrame(distances_storage[i, :, :], index=simulation_runs)
 
         # if not "Fiducial" in df.columns:
         #    df["Fiducial"] = Series(fiducial_index, index=df.index)
