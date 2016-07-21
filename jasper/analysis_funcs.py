@@ -4,7 +4,7 @@ import os
 import numpy as np
 import copy
 
-from turbustat.analysis import stats_wrapper
+from turbustat.statistics import stats_wrapper
 
 
 '''
@@ -83,7 +83,8 @@ def sort_distances(statistics, distances):
 
 def files_sorter(folder, fiducial_labels=np.arange(0, 5, 1),
                  design_labels=np.arange(0, 32, 1), timesteps='last',
-                 faces=[0, 1, 2], suffix="fits", append_prefix=False):
+                 faces=[0, 1, 2], suffix="fits", append_prefix=False,
+                 fiducial_timesteps=None):
     '''
     If the entire simulation suite is in one directory, this function
     will spit out appropriate groupings.
@@ -146,7 +147,13 @@ def files_sorter(folder, fiducial_labels=np.arange(0, 5, 1),
             print "Could not find a category for " + f
 
     # Sort and keep only the specified timesteps
-    _timestep_sort(fiducials, timesteps)
+    # Can supply different timesteps for the fiducials. This is needed for the
+    # common free-fall analysis.
+    if fiducial_timesteps is not None:
+        _timestep_sort(fiducials, fiducial_timesteps)
+    else:
+        _timestep_sort(fiducials, timesteps)
+
     _timestep_sort(designs, timesteps, labels=timestep_labels)
 
     return fiducials, designs, timestep_labels
@@ -156,33 +163,54 @@ def _timestep_sort(d, timesteps, labels=None):
     '''
     Helper function for segmenting by timesteps.
     '''
-    for lab in d.keys():
-        for face in d[lab].keys():
+    for face in d.keys():
+        for lab in d[face].keys():
             # Check for empty lists.
-            if d[lab][face] == []:
+            if d[face][lab] == []:
                 continue
-            d[lab][face].sort()
+            d[face][lab].sort()
             if timesteps == 'last':  # Grab the last one
                 if labels is not None:
-                    labels[lab][face].append(d[lab][face][-1][-16:-14])
-                d[lab][face] = d[lab][face][-1]
+                    labels[face][lab].append(d[face][lab][-1][-16:-14])
+                d[face][lab] = d[face][lab][-1]
             elif timesteps == 'max':  # Keep all available
                 # Reverse the order so the comparisons are between the highest
                 # time steps.
-                d[lab][face] = d[lab][face][::-1]
+                d[face][lab] = d[face][lab][::-1]
             elif isinstance(timesteps, int):  # Slice out a certain section
-                d[lab][face] = d[lab][face][:timesteps]
+                d[face][lab] = d[face][lab][:timesteps]
                 if labels is None:
                     continue
-                for val in d[lab][face]:
-                    labels[lab][face].append(val[-16:-14])
+                for val in d[face][lab]:
+                    labels[face][lab].append(val[-16:-14])
+            # Specify a unique timestep for each lab
+            elif isinstance(timesteps, dict):
+                # if not len(d[face][lab]) == len(timesteps):
+                #     print(d[face][lab])
+                #     print(timesteps.keys())
+                #     raise IndexError("When timesteps is a dict, it must have"
+                #                      " the same keys as d.")
+                # String to look for in the list of files
+                matcher = "_00" + str(timesteps[lab]) + "_"
+
+                match = None
+                for f in d[face][lab]:
+                    if matcher in f:
+                        match = f
+                        print f
+                        break
+                if match is None:
+                    raise Warning("Could not find a match for the timestep"
+                                  " {}".format(timesteps[lab]))
+                else:
+                    d[face][lab] = match
             else:  # Make a copy and loop through the steps
-                good_files = copy.copy(d[lab][face])
-                for f in d[lab][face]:
+                good_files = copy.copy(d[face][lab])
+                for f in d[face][lab]:
                     match = ["_00" + str(step) +
                              "_" in f for step in timesteps]
                     if not any(match):
                         good_files.remove(f)
                     if labels is not None:
-                        labels[lab][face].append(f[-16:-14])
-                d[lab][face] = good_files
+                        labels[face][lab].append(f[-16:-14])
+                d[face][lab] = good_files
