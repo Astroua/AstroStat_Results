@@ -214,7 +214,7 @@ if __name__ == "__main__":
 
     # Trying noise levels scaled by their brightness distribs
     # Set whether we have multiple timesteps for each set
-    condition_multi_tsteps = timesteps is 'last' or timesteps is 'max' or \
+    condition_multi_tsteps = timesteps is 'last' or \
         isinstance(timesteps, dict)
     if condition_multi_tsteps:
         multi_timesteps = False
