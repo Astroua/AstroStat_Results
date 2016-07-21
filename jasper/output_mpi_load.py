@@ -109,7 +109,7 @@ def run_all(fiducial, simulation_runs, statistics, savename,
 
             for i, key in enumerate(simulation_runs.keys()):
                 testing_dataset = \
-                    load_and_reduce(simulation_runs[key][comp_face])
+                    load_and_reduce(simulation_runs[key])
                 if i == 0:
                     distances, fiducial_models = \
                         stats_wrapper(fiducial_dataset, testing_dataset,
@@ -214,7 +214,9 @@ if __name__ == "__main__":
 
     # Trying noise levels scaled by their brightness distribs
     # Set whether we have multiple timesteps for each set
-    if timesteps is 'last':
+    condition_multi_tsteps = timesteps is 'last' or timesteps is 'max' or \
+        isinstance(timesteps, dict)
+    if condition_multi_tsteps:
         multi_timesteps = False
     else:
         multi_timesteps = True
@@ -237,7 +239,8 @@ if __name__ == "__main__":
         else:
             from multiprocessing import Pool
             # Default to 10 for now. Will change if this works.
-            pool = Pool(processes=12)
+            # pool = Pool(processes=12)
+            pool = Pool(processes=3)
     else:
         pool = None
 
@@ -250,7 +253,11 @@ if __name__ == "__main__":
         # number of comparisons b/w all fiducials
         num_comp = (len(fiducials[face])**2. - len(fiducials[face])) / 2
         # Change dim 2 to match number of time steps
-        distances_storage = np.zeros((num_statistics, num_comp, 10))
+        if isinstance(fiducials[0][0], list):
+            distances_storage = np.zeros((num_statistics, num_comp,
+                                          len(fiducials[0][0])))
+        else:
+            distances_storage = np.zeros((num_statistics, num_comp, 1))
         posn = 0
         prev = 0
         # no need to loop over the last one
@@ -266,7 +273,8 @@ if __name__ == "__main__":
                         statistics, save_name, pool=pool,
                         noise_added=noise_added,
                         multi_timesteps=multi_timesteps, verbose=True)
-            distances_storage[:, prev:posn, :] = partial_distances
+            shape = distances_storage[:, prev:posn, :].shape
+            distances_storage[:, prev:posn, :] = partial_distances.reshape(shape)
             prev += i
 
             fiducial_index.extend(fiducials[comp_face].keys()[fid_num + 1:])
@@ -308,9 +316,9 @@ if __name__ == "__main__":
         # in this case, don't bother specifying column names.
         # This also applies for when timesteps is given as free-fall.
         if 'max' in timesteps or isinstance(timesteps, dict):
-            df = DataFrame(distances_storage[i, :, :], index=simulation_runs)
+            df = DataFrame(distances_storage[i], index=simulation_runs)
         else:
-            df = DataFrame(distances_storage[i, :, :], index=simulation_runs,
+            df = DataFrame(distances_storage[i], index=simulation_runs,
                            columns=timesteps_labels[0][face])
 
         # if not "Fiducial" in df.columns:
