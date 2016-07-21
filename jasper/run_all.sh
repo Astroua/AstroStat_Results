@@ -18,7 +18,11 @@ COMPARE_TYPE='freefall'
 # Noiseless
 DATA_DIR=/lustre/home/ekoch/sims/SimSuite8/
 ADD_NOISE=F
-RESULTS_DIR=/lustre/home/ekoch/sims/results/clean_results/
+if [[ $COMPARE_TYPE -eq 'max' ]]; then
+    RESULTS_DIR=/lustre/home/ekoch/sims/results/clean_results/
+else
+    RESULTS_DIR=/lustre/home/ekoch/sims/results/clean_results_freefall/
+fi
 
 for face1 in {0,2}; do
     for face2 in {0,2}; do
@@ -32,7 +36,11 @@ done
 # Noisy
 DATA_DIR=/lustre/home/ekoch/sims/SimSuite8_noise/
 ADD_NOISE=T
-RESULTS_DIR=/lustre/home/ekoch/sims/results/noise_same_results/
+if [[ $COMPARE_TYPE -eq 'max' ]]; then
+    RESULTS_DIR=/lustre/home/ekoch/sims/results/noise_same_results/
+else
+    RESULTS_DIR=/lustre/home/ekoch/sims/results/noise_same_results_freefall/
+fi
 
 for face1 in {0,2}; do
     for face2 in {0,2}; do
