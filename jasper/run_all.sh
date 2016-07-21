@@ -13,16 +13,20 @@ SCRIPT_PATH=/home/ekoch/code_repos/AstroStat_Results/
 # If 'freefall', comparisons are only done between the timesteps in each simulation
 # nearest to a free-fall time.
 # COMPARE_TYPE='max'
-COMPARE_TYPE='freefall'
+COMPARE_TYPE=freefall
+
+echo $COMPARE_TYPE
 
 # Noiseless
 DATA_DIR=/lustre/home/ekoch/sims/SimSuite8/
 ADD_NOISE=F
-if [[ $COMPARE_TYPE -eq 'max' ]]; then
+if [[ $COMPARE_TYPE = max ]]; then
     RESULTS_DIR=/lustre/home/ekoch/sims/results/clean_results/
 else
     RESULTS_DIR=/lustre/home/ekoch/sims/results/clean_results_freefall/
 fi
+
+echo $RESULTS_DIR
 
 for face1 in {0,2}; do
     for face2 in {0,2}; do
@@ -36,7 +40,7 @@ done
 # Noisy
 DATA_DIR=/lustre/home/ekoch/sims/SimSuite8_noise/
 ADD_NOISE=T
-if [[ $COMPARE_TYPE -eq 'max' ]]; then
+if [[ $COMPARE_TYPE = max ]]; then
     RESULTS_DIR=/lustre/home/ekoch/sims/results/noise_same_results/
 else
     RESULTS_DIR=/lustre/home/ekoch/sims/results/noise_same_results_freefall/
@@ -52,7 +56,7 @@ for face1 in {0,2}; do
 done
 
 # Only run the observational comparisons when using 'max' (to avoid re-computing)
-if [[ ${COMPARE_TYPE} -eq 'max' ]]; then
+if [[ ${COMPARE_TYPE} = max ]]; then
     # Obs to Obs
     qsub -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH $SCRIPT_PATH/jasper/complete_to_complete.pbs
 
