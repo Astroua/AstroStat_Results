@@ -3,9 +3,11 @@ import numpy as np
 from spectral_cube import SpectralCube, LazyMask
 from astropy.io.fits import getdata
 from astropy.wcs import WCS
+import os
 
 from turbustat.data_reduction import Mask_and_Moments
-from MPI import MPIPool
+# from MPI import MPIPool
+from multiprocessing import Pool
 
 '''
 Calculate the moments for all of the cubes.
@@ -27,7 +29,7 @@ def reduce_and_save(filename, add_noise=False, rms_noise=0.001,
 
         # Optionally scale noise by 1/10th of the 98th percentile in the cube
         if rms_noise == 'scaled':
-            rms_noise = 0.1*np.percentile(cube[np.isfinite(cube)], 98)
+            rms_noise = 0.1 * np.percentile(cube[np.isfinite(cube)], 98)
 
         from scipy.stats import norm
         if not slicewise_noise:
@@ -47,7 +49,7 @@ def reduce_and_save(filename, add_noise=False, rms_noise=0.001,
         sc = filename
 
     reduc = Mask_and_Moments(sc, scale=rms_noise)
-    reduc.make_mask(mask=reduc.cube > nsig * reduc.scale)
+    reduc.make_mask(mask=reduc.cube > nsig * reduc.scale * reduc.cube.unit)
 
     reduc.make_moments()
     reduc.make_moment_errors()
@@ -55,14 +57,14 @@ def reduce_and_save(filename, add_noise=False, rms_noise=0.001,
     # Remove .fits from filename
     save_name = filename.split("/")[-1][:-4]
 
-    reduc.to_fits(output_path+save_name)
+    reduc.to_fits(os.path.join(output_path, save_name))
 
     # Save the noisy cube too
     if add_noise:
         if cube_output is None:
-            reduc.cube.hdu.writeto(output_path+save_name)
+            reduc.cube.hdu.writeto(os.path.join(output_path, save_name))
         else:
-            reduc.cube.hdu.writeto(cube_output+save_name)
+            reduc.cube.hdu.writeto(os.path.join(cube_output, save_name))
 
 
 def single_input(a):
@@ -100,7 +102,7 @@ if __name__ == "__main__":
         cube_output = output_folder
 
     # Grab all of the fits files
-    fits_files = glob.glob(folder+"*.fits")
+    fits_files = glob.glob(os.path.join(folder, "*.fits"))
 
     # Trying noise levels scaled by their brightness distribs
     if add_noise:
@@ -112,12 +114,14 @@ if __name__ == "__main__":
 
     np.random.seed(248954785)
 
-    pool = MPIPool(loadbalance=False)
+    # pool = MPIPool(loadbalance=False)
 
-    if not pool.is_master():
-        # Wait for instructions from the master process.
-        pool.wait()
-        sys.exit(0)
+    # if not pool.is_master():
+    #     # Wait for instructions from the master process.
+    #     pool.wait()
+    #     sys.exit(0)
+
+    pool = Pool(processes=2)
 
     pool.map(single_input, zip(fits_files,
                                repeat(add_noise),
