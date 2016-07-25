@@ -47,25 +47,26 @@ if tstep_choice == "mean":
     mode = 'mean'
     des_tsteps = None
     fid_tsteps = None
-elif tstep_choice == "freefall":
-    mode = 'choice'
-    # Timesteps for Simulation set 8 (used in the Tools 2016 paper).
-    des_tsteps = \
-        np.array([25, 26, 21, 21, 23, 25, 21, 21, 25, 26, 21, 22, 23, 26, 21,
-                  21, 30, 30, 27, 28, 30, 30, 27, 23, 30, 30, 27, 25, 30, 30,
-                  24, 25])
-    # Make sure this matches the number of design sims
-    assert len(des_tsteps) == 32
+# elif tstep_choice == "freefall":
+#     mode = 'choice'
+#     # Timesteps for Simulation set 8 (used in the Tools 2016 paper).
+#     des_tsteps = \
+#         np.array([25, 26, 21, 21, 23, 25, 21, 21, 25, 26, 21, 22, 23, 26, 21,
+#                   21, 30, 30, 27, 28, 30, 30, 27, 23, 30, 30, 27, 25, 30, 30,
+#                   24, 25])
+#     # Make sure this matches the number of design sims
+#     assert len(des_tsteps) == 32
 
-    fid_tsteps = np.array([25, 24, 26, 26, 26])
-    assert len(fid_tsteps) == 5
+#     fid_tsteps = np.array([25, 24, 26, 26, 26])
+#     assert len(fid_tsteps) == 5
 
-    # Subtract the 'zeroth' timestep to get the right index
-    des_tsteps -= 21
-    fid_tsteps -= 21
+#     # Subtract the 'zeroth' timestep to get the right index
+#     des_tsteps -= 21
+#     fid_tsteps -= 21
 
 else:
-    raise ValueError("tstep_choice must be 'mean' or 'freefall'")
+    # raise ValueError("tstep_choice must be 'mean' or 'freefall'")
+    raise ValueError("tstep_choice must be 'mean'.")
 
 # Redefine the path with the timestamped output folder
 path = os.path.join(path, run_name + "_" + timestring())
