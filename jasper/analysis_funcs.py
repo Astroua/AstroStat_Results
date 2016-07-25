@@ -20,11 +20,13 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
     testing_dataset = load_and_reduce(testing_timestep)
 
     if noise_added:
-        vca_break = -0.9
         vcs_break = -0.5
     else:
-        vca_break = None
         vcs_break = -0.8
+
+    # The simulations (in set 8) are not benefiting from adding a break,
+    # and including one makes the fitting for a few unstable
+    vca_break = None
 
     distances = stats_wrapper(fiducial_dataset, testing_dataset,
                               statistics=statistics, multicore=True,

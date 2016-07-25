@@ -172,11 +172,13 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
     fiducial_dataset = load_and_reduce(fits1)
     testing_dataset = load_and_reduce(fits2)
 
+    # The simulations (in set 8) are not benefiting from adding a break in VCA,
+    # and including one makes the fitting for a few unstable
     if add_noise:
         vca_break = [None, -0.7]
         vcs_break = -0.5
     else:
-        vca_break = [-0.7, -0.7]
+        vca_break = [None, -0.7]
         vcs_break = -0.5
 
     distances = stats_wrapper(fiducial_dataset, testing_dataset,
