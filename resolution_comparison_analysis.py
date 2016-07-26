@@ -7,6 +7,8 @@ import time
 from pandas import DataFrame, read_csv
 import statsmodels.api as sm
 from astropy.utils.console import ProgressBar
+from spectral_cube import SpectralCube
+from astropy.io.fits import getheader
 
 from jasper.analysis_funcs import files_sorter, sort_distances
 
@@ -16,19 +18,50 @@ sns.set_style("ticks")
 
 p.ioff()
 
-run_distances = False
+# Note that the moments need to be saved. See reduce_and_save_moments.py
+# in jasper/
+
+run_regrid = False
+# To run on the regridded cubes, enable this
+run_on_regridded = True
+run_distances = True
 run_analysis = True
 
 path_to_data = "/media/eric/Data_3/Astrostat/SimSuite8/"
 moments_path = os.path.join(path_to_data, "moments/")
 
-path_to_256 = "/media/eric/Data_3/Astrostat/Fiducial_256/"
+if run_on_regridded:
+    print("Running on regridded 256 cubes.")
+    path_to_256 = "/media/eric/Data_3/Astrostat/Fiducial_256/regrid/"
+else:
+    print("Running on normal 256 cubes.")
+    path_to_256 = "/media/eric/Data_3/Astrostat/Fiducial_256/"
 moments_256_path = os.path.join(path_to_256, "moments/")
 
 path_to_128dists = \
     "/media/eric/Data_3/Astrostat/results/clean/clean_20160725101641046250"
 
 output_path = "/media/eric/Data_3/Astrostat/results/resolution_comparison"
+
+if run_regrid:
+    # Regrid the 256 cubes to 128 and save them.
+    fiducials_256, _, _ = \
+        files_sorter(path_to_256, append_prefix=True, design_labels=[],
+                     fiducial_labels=[256], timesteps=1)
+
+    # Load in a 128 header to regrid to
+    hdr = getheader(os.path.join(path_to_data,
+                                 "lustrehomeerosSimSuite8Fiducial0_flatrho_0021_00_radmc.fits"))
+
+    for face in fiducials_256:
+        fid_256 = fiducials_256[face][256][0]
+
+        cube = SpectralCube.read(fid_256)
+
+        regrid_cube = cube.reproject(hdr)
+
+        regrid_cube.write(os.path.join(path_to_256, "regrid",
+                                       fid_256.split("/")[-1]))
 
 if run_distances:
     # Sort those from the 128 set, and keep only the first timestep
@@ -42,13 +75,14 @@ if run_distances:
                      fiducial_labels=[256], timesteps=1)
 
     # Set which stats to run.
-    statistics = statistics_list
+    statistics = statistics_list.copy()
     statistics_list.remove("Dendrogram_Hist")
     statistics_list.remove("Dendrogram_Num")
 
     all_distances = {0: None, 1: None, 2: None}
 
-    for face in fiducials.keys():
+    # for face in fiducials.keys():
+    for face in [0, 2]:
         print("On face {0} at {1}".format(face, time.ctime()))
 
         distances_storage = np.zeros((len(statistics), 5))
@@ -85,27 +119,37 @@ if run_distances:
 
         all_distances[face] = distances_storage
 
-    # Save the results
-    df_0 = DataFrame(all_distances[0], index=statistics).T
-    # df_1 = DataFrame(all_distances[1], index=statistics)
-    df_2 = DataFrame(all_distances[2], index=statistics).T
+        # Save the results
+        df = DataFrame(all_distances[face], index=statistics).T
 
-    df_0.to_csv(os.path.join(output_path, "rescompare_face0.csv"))
-    # df_1.to_csv(os.path.join(output_path, "rescompare_face1.csv"))
-    df_2.to_csv(os.path.join(output_path, "rescompare_face2.csv"))
+        if run_on_regridded:
+            output_name = \
+                os.path.join(output_path,
+                             "rescompare_regridded_face{}.csv".format(face))
+        else:
+            output_name = os.path.join(output_path,
+                                       "rescompare_face{}.csv".format(face))
+
+        df.to_csv(os.path.join(output_path,
+                               "rescompare_face{}.csv".format(face)))
 
 if run_analysis:
 
     niters = 10000
 
-    # for face in [0, 2]:
-    for face in [0]:
+    for face in [0, 2]:
         print("Running on face {}.".format(face))
 
+        if run_on_regridded:
+            filename = \
+                os.path.join(output_path,
+                             "rescompare_regridded_face{}.csv".format(face))
+        else:
+            filename = os.path.join(output_path,
+                                    "rescompare_face{}.csv".format(face))
+
         fids256 = \
-            read_csv(os.path.join(output_path,
-                                  "rescompare_face{}.csv".format(face)),
-                     index_col=0)
+            read_csv(filename, index_col=0)
         # Now load in the fiducial-fiducial distances of the 128 cubes
         fids128 = \
             read_csv(os.path.join(path_to_128dists,
@@ -135,5 +179,12 @@ if run_analysis:
             pvals[stat] = float(counter) / float(niters)
 
         pval_df = DataFrame(pvals, index=[0])
-        pval_df.to_csv(os.path.join(output_path,
-                                    "pvals_face_{}.csv".format(face)))
+
+        if run_on_regridded:
+            output_name = \
+                os.path.join(output_path,
+                             "pvals_regridded_face_{}.csv".format(face))
+        else:
+            output_name = os.path.join(output_path,
+                                       "pvals_face_{}.csv".format(face))
+        pval_df.to_csv(output_name)
