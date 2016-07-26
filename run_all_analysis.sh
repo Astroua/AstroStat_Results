@@ -80,6 +80,6 @@ if [[ ${ff_analysis} -eq 1 ]]; then
     python ${scripts_dir}/analysis_pipeline.py . ${results_dir}/Design7Matrix.csv ${scripts_dir} ${results_dir}/clean_freefall/clean_freefall mean
     echo "Running noisy freefall analysis"
     cd ${results_dir}/noisy_freefall
-    python ${scripts_dir}/analysis_pipeline.py . ${results_dir}/Design7Matrix.csv ${scripts_dir} ${results_dir}/noisy_freefall/noisy/noisy_freefall mean
+    python ${scripts_dir}/analysis_pipeline.py . ${results_dir}/Design7Matrix.csv ${scripts_dir} ${results_dir}/noisy_freefall/noisy_freefall mean
 fi
 
