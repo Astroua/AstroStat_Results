@@ -24,13 +24,13 @@ import os
 import shutil
 import sys
 
-from turbustat.analysis.convert_results import concat_convert_HDF5
-from turbustat.analysis import convert_format, comparison_plot
+from analysis.convert_results import concat_convert_HDF5
+from analysis import convert_format, comparison_plot
 
 
 path_to_data = os.path.abspath(sys.argv[1])
 path_to_noise_sim_results = os.path.abspath(sys.argv[2])
-design_matrix = os.path.join(path_to_data, "Design7Matrix.csv")
+design_matrix = os.path.join("/".join(path_to_data.split("/")[:-1]), "Design7Matrix.csv")
 
 # Obs to Fids
 
