@@ -2,6 +2,7 @@
 from turbustat.data_reduction import Mask_and_Moments
 from turbustat.statistics import stats_wrapper, statistics_list
 import os
+import sys
 import numpy as np
 import time
 from pandas import DataFrame, read_csv
@@ -9,6 +10,7 @@ import statsmodels.api as sm
 from astropy.utils.console import ProgressBar
 from spectral_cube import SpectralCube
 from astropy.io.fits import getheader
+from copy import copy
 
 from jasper.analysis_funcs import files_sorter, sort_distances
 
@@ -18,12 +20,17 @@ sns.set_style("ticks")
 
 p.ioff()
 
+np.random.seed(446784788)
+
 # Note that the moments need to be saved. See reduce_and_save_moments.py
 # in jasper/
 
 run_regrid = False
 # To run on the regridded cubes, enable this
-run_on_regridded = True
+try:
+    run_on_regridded = True if sys.argv[1] == "T" else False
+except IndexError:
+    run_on_regridded = True
 run_distances = True
 run_analysis = True
 
@@ -75,9 +82,9 @@ if run_distances:
                      fiducial_labels=[256], timesteps=1)
 
     # Set which stats to run.
-    statistics = statistics_list.copy()
-    statistics_list.remove("Dendrogram_Hist")
-    statistics_list.remove("Dendrogram_Num")
+    statistics = copy(statistics_list)
+    statistics.remove("Dendrogram_Hist")
+    statistics.remove("Dendrogram_Num")
 
     all_distances = {0: None, 1: None, 2: None}
 
@@ -130,8 +137,7 @@ if run_distances:
             output_name = os.path.join(output_path,
                                        "rescompare_face{}.csv".format(face))
 
-        df.to_csv(os.path.join(output_path,
-                               "rescompare_face{}.csv".format(face)))
+        df.to_csv(output_name)
 
 if run_analysis:
 
