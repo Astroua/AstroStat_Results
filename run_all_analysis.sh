@@ -12,6 +12,7 @@ clean_analysis=1
 noisy_analysis=1
 obs_analysis=1
 ff_analysis=1
+res_comp_analysis=1
 
 # Create the expected folder structure
 if [[ ${make_folder_struct} -eq 1 ]]; then
@@ -31,6 +32,9 @@ if [[ ${make_folder_struct} -eq 1 ]]; then
     mkdir ${results_dir}/clean_freefall/HDF5_files
     mkdir ${results_dir}/noisy_freefall
     mkdir ${results_dir}/noisy_freefall/HDF5_files
+    # Res comparison
+    mkdir /media/eric/Data_3/Astrostat/Fiducial_256/moments
+    mkdir /media/eric/Data_3/Astrostat/Fiducial_128_reproc/moments
 
 fi
 
@@ -81,5 +85,17 @@ if [[ ${ff_analysis} -eq 1 ]]; then
     echo "Running noisy freefall analysis"
     cd ${results_dir}/noisy_freefall
     python ${scripts_dir}/analysis_pipeline.py . ${results_dir}/Design7Matrix.csv ${scripts_dir} ${results_dir}/noisy_freefall/noisy_freefall mean
+fi
+
+if [[ ${res_comp_analysis} -eq 1 ]]; then
+    echo "Running resolution comparison"
+    # Need to create the moments first.
+    python ${scripts_dir}/jasper/reduce_and_save_moments.py /media/eric/Data_3/Astrostat/Fiducial_256/ /media/eric/Data_3/Astrostat/Fiducial_256/moments/ T F
+    python ${scripts_dir}/jasper/reduce_and_save_moments.py /media/eric/Data_3/Astrostat/Fiducial_128_reproc/ /media/eric/Data_3/Astrostat/Fiducial_128_reproc/moments/ T F
+
+    # Run on w/ the full 256
+    python ${scripts_dir}/resolution_comparison_analysis.py F
+    # And with the 256 regridded to 128
+    python ${scripts_dir}/resolution_comparison_analysis.py T
 fi
 
