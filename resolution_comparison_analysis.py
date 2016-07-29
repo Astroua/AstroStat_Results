@@ -34,8 +34,12 @@ except IndexError:
 run_distances = True
 run_analysis = True
 
-path_to_data = "/media/eric/Data_3/Astrostat/SimSuite8/"
+# path_to_data = "/media/eric/Data_3/Astrostat/SimSuite8/"
+path_to_data = "/media/eric/Data_3/Astrostat/Fiducial_reproc/"
 moments_path = os.path.join(path_to_data, "moments/")
+
+# Only running on face 0
+faces = [0]
 
 if run_on_regridded:
     print("Running on regridded 256 cubes.")
@@ -58,7 +62,7 @@ if run_regrid:
 
     # Load in a 128 header to regrid to
     hdr = getheader(os.path.join(path_to_data,
-                                 "lustrehomeerosSimSuite8Fiducial0_flatrho_0021_00_radmc.fits"))
+                                 "homeerosSimSuite8Fiducial0_flatrho_0021_00_radmc.fits"))
 
     for face in fiducials_256:
         fid_256 = fiducials_256[face][256][0]
@@ -71,25 +75,25 @@ if run_regrid:
                                        fid_256.split("/")[-1]))
 
 if run_distances:
+
     # Sort those from the 128 set, and keep only the first timestep
     fiducials, _, _ = \
-        files_sorter(path_to_data, timesteps=1,
+        files_sorter(path_to_data, timesteps=1, faces=faces,
                      append_prefix=True, design_labels=[])
 
     # Now the 256 cubes
     fiducials_256, _, _ = \
         files_sorter(path_to_256, append_prefix=True, design_labels=[],
-                     fiducial_labels=[256], timesteps=1)
+                     faces=faces, fiducial_labels=[256], timesteps=1)
 
     # Set which stats to run.
     statistics = copy(statistics_list)
-    statistics.remove("Dendrogram_Hist")
-    statistics.remove("Dendrogram_Num")
+    # statistics.remove("Dendrogram_Hist")
+    # statistics.remove("Dendrogram_Num")
 
     all_distances = {0: None, 1: None, 2: None}
 
-    # for face in fiducials.keys():
-    for face in [0, 2]:
+    for face in fiducials.keys():
         print("On face {0} at {1}".format(face, time.ctime()))
 
         distances_storage = np.zeros((len(statistics), 5))
@@ -143,7 +147,7 @@ if run_analysis:
 
     niters = 10000
 
-    for face in [0, 2]:
+    for face in faces:
         print("Running on face {}.".format(face))
 
         if run_on_regridded:
