@@ -108,7 +108,7 @@ if run_distances:
                                        moments_path=moments_256_path).to_dict()
 
         # Loop through 128 fiducials
-        for i, fid_num in enumerate(fiducials[face].keys()):
+        for i, fid_num in enumerate(ProgressBar(fiducials[face].keys())):
             fid_128 = fiducials[face][fid_num][0]
             dataset2 = \
                 Mask_and_Moments.from_fits(fid_128,
