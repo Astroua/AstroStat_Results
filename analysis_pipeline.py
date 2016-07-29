@@ -43,6 +43,8 @@ run_name = sys.argv[4]
 
 tstep_choice = sys.argv[5]
 
+added_noise = True if sys.argv[6] == "T" else False
+
 if tstep_choice == "mean":
     mode = 'mean'
     des_tsteps = None
@@ -226,13 +228,20 @@ ta.effect_plots("DataforFits.csv", "ResultsFactorial.csv", save=True,
                 out_path='Model_Plots')
 
 # Only show results of the good statistics
-good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
-              "Dendrogram_Num", "PCA", "PDF_Hellinger", "SCF", "VCA", "VCS",
-              "VCS_Small_Scale", "VCS_Large_Scale", "Skewness", "Kurtosis"]
+if added_noise:
+    good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
+                  "Dendrogram_Num", "PCA", "PDF_Hellinger", "SCF", "VCA",
+                  "VCS_Large_Scale", "Skewness", "Kurtosis"]
 
-# THE ASPECT RATIO IS FUNKY
-# NEED TO ADJUST BY HAND
-# Use: p.ion(), and set save_name=None to alter by-hand
+else:
+    good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
+                  "Dendrogram_Num", "PCA", "PDF_Hellinger", "SCF", "VCA",
+                  "VCS", "VCS_Small_Scale", "VCS_Large_Scale", "Skewness",
+                  "Kurtosis"]
+
+import seaborn as sb
+sb.set_context("poster", font_scale=1.5)
+sb.set_style('ticks')
 
 ta.map_all_results("ResultsFactorial.csv", normed=False, max_order=2,
                    save_name="map_all_results.pdf",
