@@ -226,7 +226,6 @@ def load_and_reduce(filename, moment_folder="moments/"):
     # CDELT2 and CDELT1 need to be ~1000 times larger (since they were setup
     # to roughly match the angular scale in the COMPLETE data.)
     if "homeeros" in sim_name:
-        print("Update CDELT2")
         for key in file_dict:
             file_dict[key][1]["CDELT1"] *= 1000.
             file_dict[key][1]["CDELT2"] *= 1000.
