@@ -99,10 +99,14 @@ def effect_plots(distance_file, effects_file, min_zscore=2.0, statistics=None,
                 param1 = param.split(":")[0]
                 param2 = param.split(":")[-1]
 
-                low_low = distances[stat][np.logical_and(design[param1] == -1, design[param2] == -1)]
-                low_high = distances[stat][np.logical_and(design[param1] == 1, design[param2] == -1)]
-                high_low = distances[stat][np.logical_and(design[param1] == -1, design[param2] == 1)]
-                high_high = distances[stat][np.logical_and(design[param1] == 1, design[param2] == 1)]
+                low_low = distances[stat][np.logical_and(design[param1] == -1,
+                                                         design[param2] == -1)]
+                low_high = distances[stat][np.logical_and(design[param1] == 1,
+                                                          design[param2] == -1)]
+                high_low = distances[stat][np.logical_and(design[param1] == -1,
+                                                          design[param2] == 1)]
+                high_high = distances[stat][np.logical_and(design[param1] == 1,
+                                                          design[param2] == 1)]
 
                 ax.plot([-1, 1], [low_low.mean(), low_high.mean()], marker="D",
                         color=scalMap.to_rgba(np.log10(imp_inters[param])))
@@ -249,22 +253,18 @@ def map_all_results(effects_file, min_zscore=2.0, save_name=None,
                              for eff in model_effects]
 
     milagro = \
-        colormap_milagro(0,
-                         10,
-                         2)
+        colormap_milagro(0, 10, 2)
 
     p.imshow(values, vmin=0, vmax=10, cmap=milagro,
              interpolation="nearest")
-    p.xticks(np.arange(len(model_effects)), model_effects, rotation=90,
-             fontsize=24)
-    p.yticks(np.arange(len(statistics)), stat_labels, fontsize=24)
+    p.xticks(np.arange(len(model_effects)), model_effects, rotation=90)
+    p.yticks(np.arange(len(statistics)), stat_labels)
     cbar = p.colorbar(fraction=0.05, shrink=0.9)
-    cbar.ax.set_ylabel(r'$t$-value', size=24)
-    cbar.ax.tick_params(labelsize=24)
+    cbar.ax.set_ylabel(r'$t$-value')
+    # cbar.ax.tick_params(labelsize=fontsize)
     # Avoid white lines in the pdf rendering
     cbar.solids.set_edgecolor("face")
 
-    p.axes().set_aspect('auto')
     p.tight_layout()
 
     # Save if save_name has been given
