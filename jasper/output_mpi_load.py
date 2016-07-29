@@ -237,8 +237,7 @@ if __name__ == "__main__":
         else:
             from multiprocessing import Pool
             # Default to 10 for now. Will change if this works.
-            # pool = Pool(processes=12)
-            pool = Pool(processes=3)
+            pool = Pool(processes=12)
     else:
         pool = None
 
