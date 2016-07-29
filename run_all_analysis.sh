@@ -34,7 +34,7 @@ if [[ ${make_folder_struct} -eq 1 ]]; then
     mkdir ${results_dir}/noisy_freefall/HDF5_files
     # Res comparison
     mkdir /media/eric/Data_3/Astrostat/Fiducial_256/moments
-    mkdir /media/eric/Data_3/Astrostat/Fiducial_128_reproc/moments
+    mkdir /media/eric/Data_3/Astrostat/Fiducial_reproc/moments
 
 fi
 
@@ -52,6 +52,9 @@ if [[ ${file_copy} -eq 1 ]]; then
     # FF comparisons
     rsync ekoch@jasper.westgrid.ca:/home/ekoch/sims/results/clean_results_freefall/*.h5 ${results_dir}/clean_freefall/HDF5_files/
     rsync ekoch@jasper.westgrid.ca:/home/ekoch/sims/results/noise_same_results_freefall/*.h5 ${results_dir}/noisy_freefall/HDF5_files/
+
+    # Reproc fiducial comparisons
+    rsync ekoch@jasper.westgrid.ca:/home/ekoch/sims/results/fiducial_reproc/*.h5 ${results_dir}/resolution_comparison
 
 fi
 
@@ -89,9 +92,12 @@ fi
 
 if [[ ${res_comp_analysis} -eq 1 ]]; then
     echo "Running resolution comparison"
+    create_moments=0
     # Need to create the moments first.
-    python ${scripts_dir}/jasper/reduce_and_save_moments.py /media/eric/Data_3/Astrostat/Fiducial_256/ /media/eric/Data_3/Astrostat/Fiducial_256/moments/ T F
-    python ${scripts_dir}/jasper/reduce_and_save_moments.py /media/eric/Data_3/Astrostat/Fiducial_128_reproc/ /media/eric/Data_3/Astrostat/Fiducial_128_reproc/moments/ T F
+    if [[ ${create_moments} -eq 1 ]]; then
+        python ${scripts_dir}/jasper/reduce_and_save_moments.py /media/eric/Data_3/Astrostat/Fiducial_256/ /media/eric/Data_3/Astrostat/Fiducial_256/moments/ T F
+        python ${scripts_dir}/jasper/reduce_and_save_moments.py /media/eric/Data_3/Astrostat/Fiducial_reproc/ /media/eric/Data_3/Astrostat/Fiducial_128_reproc/moments/ T F
+    fi
 
     # Run on w/ the full 256
     python ${scripts_dir}/resolution_comparison_analysis.py F
