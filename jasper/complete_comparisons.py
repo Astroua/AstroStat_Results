@@ -221,6 +221,16 @@ def load_and_reduce(filename, moment_folder="moments/"):
             list(getdata(prefix_direc + moment_folder +
                          sim_name + file_lab + ".fits", 1, header=True))
 
+    # There is an issue with the angular cell size in all of the sim headers.
+    # This really only matters when comparing to real data.
+    # CDELT2 and CDELT1 need to be ~1000 times larger (since they were setup
+    # to roughly match the angular scale in the COMPLETE data.)
+    if "homeeros" in sim_name:
+        print("Update CDELT2")
+        for key in file_dict:
+            file_dict[key][1]["CDELT1"] *= 1000.
+            file_dict[key][1]["CDELT2"] *= 1000.
+
     return file_dict
 
 
@@ -285,7 +295,8 @@ if __name__ == "__main__":
     #               "VCA", "PCA", "SCF", "Cramer", "VCS_Break", "Dendrogram_Hist",
     #               "Dendrogram_Num"]
 
-    statistics = ["Wavelet", "MVC", "PSpec", "Bispectrum", "SCF", "VCA"]
+    # statistics = ["SCF", "Genus", "DeltaVariance", "Skewness", "Kurtosis"]
+    statistics = ["DeltaVariance"]
 
     print "Statistics to run: %s" % (statistics)
 
