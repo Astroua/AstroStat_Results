@@ -28,7 +28,6 @@ def reduce_and_save(filename, add_noise=False, regrid_linewidth=False,
         sc = SpectralCube.read(filename)
 
         if regrid_linewidth:
-
             sc = preprocessor(sc, min_intensity=nsig * rms_noise * u.K)
 
         if add_noise:
@@ -66,12 +65,13 @@ def reduce_and_save(filename, add_noise=False, regrid_linewidth=False,
     reduc.make_moment_errors()
 
     # Remove .fits from filename
-    save_name = filename.split("/")[-1][:-4]
+    save_name = os.path.splitext(os.path.basename(filename))[0]
 
     reduc.to_fits(os.path.join(output_path, save_name))
 
     # Save the noisy cube too
-    if add_noise:
+    if add_noise or regrid_linewidth:
+        save_name += ".fits"
         if cube_output is None:
             reduc.cube.hdu.writeto(os.path.join(output_path, save_name))
         else:
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     else:
         regrid_linewidth = False
 
-    if add_noise:
+    if add_noise or regrid_linewidth:
         try:
             cube_output = str(sys.argv[6])
         except IndexError:

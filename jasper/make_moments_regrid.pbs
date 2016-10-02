@@ -12,5 +12,5 @@
 source /home/ekoch/.bashrc
 
 echo "Starting at: `date`"
-mpirun -np 48 python2.7 /home/ekoch/code_repos/TurbuStat/Examples/jasper/reduce_and_save_moments.py /lustre/home/ekoch/sims/SimSuite8/ /lustre/home/ekoch/sims/SimSuite8_regrid/moments/ F T /lustre/home/ekoch/sims/SimSuite8_regrid/
+mpirun -np 48 python2.7 /home/ekoch/code_repos/TurbuStat/Examples/jasper/reduce_and_save_moments.py /lustre/home/ekoch/sims/SimSuite8/ /lustre/home/ekoch/sims/SimSuite8_regrid/moments/ F F T /lustre/home/ekoch/sims/SimSuite8_regrid/
 echo "Exited with code $? at: `date`"
