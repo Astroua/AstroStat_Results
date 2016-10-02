@@ -1,49 +1,60 @@
 
 import numpy as np
 from spectral_cube import SpectralCube, LazyMask
-from astropy.io.fits import getdata
-from astropy.wcs import WCS
+from astropy import units as u
 import os
 
 from turbustat.data_reduction import Mask_and_Moments
-# from MPI import MPIPool
+from MPI import MPIPool
 from multiprocessing import Pool
+
+# Regridding to a common linewidth
+from preprocessor import preprocessor
 
 '''
 Calculate the moments for all of the cubes.
 '''
 
 
-def reduce_and_save(filename, add_noise=False, rms_noise=0.001,
-                    output_path="", cube_output=None,
+def reduce_and_save(filename, add_noise=False, regrid_linewidth=False,
+                    rms_noise=0.001, output_path="", cube_output=None,
                     nsig=3, slicewise_noise=True):
     '''
     Load the cube in and derive the property arrays.
     '''
 
-    if add_noise:
-        if rms_noise is None:
-            raise TypeError("Must specify value of rms noise.")
+    if add_noise or regrid_linewidth:
 
-        cube, hdr = getdata(filename, header=True)
+        sc = SpectralCube.read(filename)
 
-        # Optionally scale noise by 1/10th of the 98th percentile in the cube
-        if rms_noise == 'scaled':
-            rms_noise = 0.1 * np.percentile(cube[np.isfinite(cube)], 98)
+        if regrid_linewidth:
 
-        from scipy.stats import norm
-        if not slicewise_noise:
-            cube += norm.rvs(0.0, rms_noise, cube.shape)
-        else:
-            spec_shape = cube.shape[0]
-            slice_shape = cube.shape[1:]
-            for i in range(spec_shape):
-                cube[i, :, :] += norm.rvs(0.0, rms_noise, slice_shape)
+            sc = preprocessor(sc, min_intensity=nsig * rms_noise * u.K)
 
-        sc = SpectralCube(data=cube, wcs=WCS(hdr))
+        if add_noise:
+            if rms_noise is None:
+                raise TypeError("Must specify value of rms noise.")
 
-        mask = LazyMask(np.isfinite, sc)
-        sc = sc.with_mask(mask)
+            cube = sc.filled_data[:].value
+
+            # Optionally scale noise by 1/10th of the 98th percentile in the
+            # cube
+            if rms_noise == 'scaled':
+                rms_noise = 0.1 * np.percentile(cube[np.isfinite(cube)], 98)
+
+            from scipy.stats import norm
+            if not slicewise_noise:
+                cube += norm.rvs(0.0, rms_noise, cube.shape)
+            else:
+                spec_shape = cube.shape[0]
+                slice_shape = cube.shape[1:]
+                for i in range(spec_shape):
+                    cube[i, :, :] += norm.rvs(0.0, rms_noise, slice_shape)
+
+            sc = SpectralCube(data=cube, wcs=sc.wcs)
+
+            mask = LazyMask(np.isfinite, sc)
+            sc = sc.with_mask(mask)
 
     else:
         sc = filename
@@ -70,6 +81,7 @@ def reduce_and_save(filename, add_noise=False, rms_noise=0.001,
 def single_input(a):
     return reduce_and_save(*a)
 
+
 if __name__ == "__main__":
 
     import sys
@@ -92,9 +104,15 @@ if __name__ == "__main__":
     else:
         add_noise = False
 
+    regrid_linewidth = str(sys.argv[5])
+    if regrid_linewidth == "T":
+        regrid_linewidth = True
+    else:
+        regrid_linewidth = False
+
     if add_noise:
         try:
-            cube_output = str(sys.argv[5])
+            cube_output = str(sys.argv[6])
         except IndexError:
             print "Using same output folder for dirty cubes and moments."
             cube_output = output_folder
@@ -121,10 +139,11 @@ if __name__ == "__main__":
     #     pool.wait()
     #     sys.exit(0)
 
-    pool = Pool(processes=2)
+    pool = Pool(processes=7)
 
     pool.map(single_input, zip(fits_files,
                                repeat(add_noise),
+                               repeat(regrid_linewidth),
                                repeat(rms_noise),
                                repeat(output_folder),
                                repeat(cube_output)))
