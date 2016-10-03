@@ -54,7 +54,7 @@ def load_and_reduce(filename, moment_folder="moments/"):
     prefix_direc = "/".join(filename.split("/")[:-1])
     if len(prefix_direc) != 0:
         prefix_direc = prefix_direc + "/"
-    sim_name = filename.split("/")[-1][:-4]
+    sim_name = os.path.splitext(os.path.basename(filename))[0]
 
     for dic_lab, file_lab in zip(labels, file_labels):
         file_dict[dic_lab] = \
