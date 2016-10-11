@@ -14,6 +14,7 @@ regrid_analysis=1
 obs_analysis=1
 ff_analysis=1
 res_comp_analysis=1
+face_comparison=1
 
 # Create the expected folder structure
 if [[ ${make_folder_struct} -eq 1 ]]; then
@@ -40,6 +41,8 @@ if [[ ${make_folder_struct} -eq 1 ]]; then
     # Res comparison
     mkdir /media/eric/Data_3/Astrostat/Fiducial_256/moments
     mkdir /media/eric/Data_3/Astrostat/Fiducial_reproc/moments
+    # Face comparison
+    mkdir ${results_dir}/face_compare
 
 fi
 
@@ -63,6 +66,8 @@ if [[ ${file_copy} -eq 1 ]]; then
     # Reproc fiducial comparisons
     rsync ekoch@jasper.westgrid.ca:/home/ekoch/sims/results/fiducial_reproc/*.h5 ${results_dir}/resolution_comparison
 
+    # Face comparisons
+    rsync ekoch@jasper.westgrid.ca:/home/ekoch/sims/results/face_compare/*.csv ${results_dir}/face_compare
 fi
 
 # Run the pipeline for the clean and noisy distances
@@ -122,3 +127,6 @@ if [[ ${res_comp_analysis} -eq 1 ]]; then
     python ${scripts_dir}/resolution_comparison_analysis.py T
 fi
 
+if [[ ${face_comparison} -eq 1 ]]; then
+    python ${scripts_dir}/viewing_angle_comparison.py ${results_dir}/face_compare
+fi
