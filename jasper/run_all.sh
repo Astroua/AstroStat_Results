@@ -12,6 +12,7 @@ run_noise=1
 run_regrid=1
 run_obs=1
 run_fid_reproc=1
+run_face_compare=1
 
 SCRIPT_PATH=/home/ekoch/code_repos/AstroStat_Results/
 
@@ -114,4 +115,15 @@ if [[ $run_fid_reproc -eq 1 ]]; then
     face1=0
     face2=0
     qsub -N reproc_fiducial_noise_comp_"$face1"_"$face2" -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FIDUCIAL="fid_comp",FACE_1=$face1,FACE_2=$face2,DATA_DIR=$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR,COMPARE_TYPE=$COMPARE_TYPE $SCRIPT_PATH/jasper/fiducial_submit.pbs
+fi
+
+DATA_DIR=/lustre/home/ekoch/sims/SimSuite8/
+RESULTS_DIR=/lustre/home/ekoch/sims/results/face_compare/
+if [[ $run_face_compare -eq 1]]; then
+    # Face 0 to Face 1
+    qsub -N face_comparison_0_1 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 0 1 $RESULTS_DIR"
+    # Face 0 to Face 2
+    qsub -N face_comparison_0_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 0 2 $RESULTS_DIR"
+    # Face 1 to Face 2
+    qsub -N face_comparison_1_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 1 2 $RESULTS_DIR"
 fi
