@@ -73,9 +73,9 @@ def reduce_and_save(filename, add_noise=False, regrid_linewidth=False,
     if add_noise or regrid_linewidth:
         save_name += ".fits"
         if cube_output is None:
-            reduc.cube.hdu.writeto(os.path.join(output_path, save_name))
+            sc.hdu.writeto(os.path.join(output_path, save_name))
         else:
-            reduc.cube.hdu.writeto(os.path.join(cube_output, save_name))
+            sc.hdu.writeto(os.path.join(cube_output, save_name))
 
 
 def single_input(a):
