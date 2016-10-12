@@ -13,7 +13,7 @@ from multiprocessing import Pool, Manager
 
 from turbustat.statistics import stats_wrapper, statistics_list
 
-from jasper.analysis_funcs import load_and_reduce, files_sorter
+from analysis_funcs import load_and_reduce, files_sorter
 
 # Enable multiprocessing
 multiprocess = True
