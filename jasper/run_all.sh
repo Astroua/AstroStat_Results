@@ -121,9 +121,9 @@ DATA_DIR=/lustre/home/ekoch/sims/SimSuite8/
 RESULTS_DIR=/lustre/home/ekoch/sims/results/face_compare/
 if [[ $run_face_compare -eq 1 ]]; then
     # Face 0 to Face 1
-    qsub -N face_comparison_0_1 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 0 1 $RESULTS_DIR"
+    qsub -N face_comparison_0_1 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "/home/ekoch/miniconda/bin/python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 0 1 $RESULTS_DIR"
     # Face 0 to Face 2
-    qsub -N face_comparison_0_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 0 2 $RESULTS_DIR"
+    qsub -N face_comparison_0_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "/home/ekoch/miniconda/bin/python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 0 2 $RESULTS_DIR"
     # Face 1 to Face 2
-    qsub -N face_comparison_1_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 1 2 $RESULTS_DIR"
+    qsub -N face_comparison_1_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "/home/ekoch/miniconda/bin/python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 1 2 $RESULTS_DIR"
 fi
