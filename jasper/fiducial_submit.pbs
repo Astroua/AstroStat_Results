@@ -10,6 +10,6 @@
 source /home/ekoch/.bashrc
 
 echo "Starting at: `date`"
-echo "Given parameters: $DATA_DIR, $FIDUCIAL, $FACE_1, $FACE_2, $COMPARE_TYPE $ADD_NOISE, $RESULTS_DIR"
-python2.7 $SCRIPT_PATH/jasper/output_mpi_load.py $DATA_DIR $FIDUCIAL $FACE_1 $FACE_2 $COMPARE_TYPE SimSuite8 T $ADD_NOISE $RESULTS_DIR
+echo "Given parameters: $DATA_DIR, $FIDUCIAL, $FACE_1, $FACE_2, $COMPARE_TYPE $ADD_NOISE, $RESULTS_DIR, $HOT_RUN"
+python2.7 $SCRIPT_PATH/jasper/output_mpi_load.py $DATA_DIR $FIDUCIAL $FACE_1 $FACE_2 $COMPARE_TYPE SimSuite8 T $ADD_NOISE $RESULTS_DIR $HOT_RUN
 echo "Exited with code $? at: `date`"

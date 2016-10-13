@@ -186,6 +186,19 @@ if __name__ == "__main__":
         noise_added = False
     output_direc = str(sys.argv[9])
 
+    # The naming scheme is different for the hot Fiducial sims.
+    # Give an additional command line arg to change the string looked for in
+    # files_sorter
+    try:
+        use_hot_sims = True if sys.argv[10] == "T" else False
+    except IndexError:
+        use_hot_sims = False
+
+    if use_hot_sims:
+        design_sim_identifier = "FiducialHot"
+    else:
+        design_sim_identifier = "Design"
+
     # Run on single timesteps when each simulation is at ~ one free fall time
     if timesteps == "freefall":
         # These are the output times that correspond to ~ free-fall time
@@ -221,7 +234,10 @@ if __name__ == "__main__":
 
     fiducials, designs, timesteps_labels = \
         files_sorter(PREFIX, timesteps=timesteps,
-                     append_prefix=True, fiducial_timesteps=fid_tsteps)
+                     append_prefix=True, fiducial_timesteps=fid_tsteps,
+                     design_identifier=design_sim_identifier)
+
+    print(argh)
 
     if MULTICORE:
 

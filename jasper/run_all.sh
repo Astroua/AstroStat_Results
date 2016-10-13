@@ -13,6 +13,7 @@ run_regrid=1
 run_obs=1
 run_fid_reproc=1
 run_face_compare=1
+run_hotfid_compare=1
 
 SCRIPT_PATH=/home/ekoch/code_repos/AstroStat_Results/
 
@@ -20,8 +21,8 @@ SCRIPT_PATH=/home/ekoch/code_repos/AstroStat_Results/
 # the timesteps of all others (starting from the last timestep in each).
 # If 'freefall', comparisons are only done between the timesteps in each simulation
 # nearest to a free-fall time.
-# COMPARE_TYPE='max'
-COMPARE_TYPE=freefall
+COMPARE_TYPE='max'
+# COMPARE_TYPE=freefall
 
 echo "Running comparison type: "$COMPARE_TYPE
 
@@ -126,4 +127,19 @@ if [[ $run_face_compare -eq 1 ]]; then
     qsub -N face_comparison_0_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "/home/ekoch/miniconda/bin/python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 0 2 $RESULTS_DIR"
     # Face 1 to Face 2
     qsub -N face_comparison_1_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -d . <<< "/home/ekoch/miniconda/bin/python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 1 2 $RESULTS_DIR"
+fi
+
+DATA_DIR=/lustre/home/ekoch/sims/SimSuite8_hot/
+RESULTS_DIR=/lustre/home/ekoch/sims/results/hot_compare/
+if [[ $run_hot_compare -eq 1 ]]; then
+    # Run Fiducial comparisons to the hot Fiducials
+    # The clean normal fiducial to fiducial comparisons are valid here, so no need to re-run
+    for face1 in {0,2}; do
+        for face2 in {0,2}; do
+            # qsub -N fiducial_regrid_comp_"$face1"_"$face2" -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FIDUCIAL="fid_comp",FACE_1=$face1,FACE_2=$face2,DATA_DIR=$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR,COMPARE_TYPE=$COMPARE_TYPE $SCRIPT_PATH/jasper/fiducial_submit.pbs
+            for fid in {0..4}; do
+                qsub -N fiducial_hot_"$fid"_"$face1"_"$face2" -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FIDUCIAL=$fid,FACE_1=$face1,FACE_2=$face2,DATA_DIR=$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR,COMPARE_TYPE=$COMPARE_TYPE,$HOT_RUN=T $SCRIPT_PATH/jasper/fiducial_submit.pbs
+            done
+        done
+    done
 fi
