@@ -59,6 +59,11 @@ def effect_plots(distance_file, effects_file, min_zscore=2.0, statistics=None,
             warnings.warn("%s effects not found. Skipping" % (stat))
             continue
 
+        if response.max() == 0.0:
+            warnings.warn("Largest t-value is 0. Assuming failed fit for"
+                          " {}.".format(stat))
+            continue
+
         # Ignore higher than 2nd order effects
         response = response[:21]
 
