@@ -131,14 +131,14 @@ fi
 
 DATA_DIR=/lustre/home/ekoch/sims/SimSuite8_hot/
 RESULTS_DIR=/lustre/home/ekoch/sims/results/hot_compare/
-if [[ $run_hot_compare -eq 1 ]]; then
+if [[ $run_hotfid_compare -eq 1 ]]; then
     # Run Fiducial comparisons to the hot Fiducials
     # The clean normal fiducial to fiducial comparisons are valid here, so no need to re-run
     for face1 in {0,2}; do
         for face2 in {0,2}; do
             # qsub -N fiducial_regrid_comp_"$face1"_"$face2" -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FIDUCIAL="fid_comp",FACE_1=$face1,FACE_2=$face2,DATA_DIR=$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR,COMPARE_TYPE=$COMPARE_TYPE $SCRIPT_PATH/jasper/fiducial_submit.pbs
             for fid in {0..4}; do
-                qsub -N fiducial_hot_"$fid"_"$face1"_"$face2" -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FIDUCIAL=$fid,FACE_1=$face1,FACE_2=$face2,DATA_DIR=$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR,COMPARE_TYPE=$COMPARE_TYPE,$HOT_RUN=T $SCRIPT_PATH/jasper/fiducial_submit.pbs
+                qsub -N fiducial_hot_"$fid"_"$face1"_"$face2" -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FIDUCIAL=$fid,FACE_1=$face1,FACE_2=$face2,DATA_DIR=$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR,COMPARE_TYPE=$COMPARE_TYPE,HOT_RUN=T $SCRIPT_PATH/jasper/fiducial_submit.pbs
             done
         done
     done
