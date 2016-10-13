@@ -237,8 +237,6 @@ if __name__ == "__main__":
                      append_prefix=True, fiducial_timesteps=fid_tsteps,
                      design_identifier=design_sim_identifier)
 
-    print(argh)
-
     if MULTICORE:
 
         use_mpi = False
