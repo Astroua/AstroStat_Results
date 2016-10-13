@@ -15,6 +15,7 @@ obs_analysis=1
 ff_analysis=1
 res_comp_analysis=1
 face_comparison=1
+hot_comparison=1
 
 # Create the expected folder structure
 if [[ ${make_folder_struct} -eq 1 ]]; then
@@ -43,6 +44,9 @@ if [[ ${make_folder_struct} -eq 1 ]]; then
     mkdir /media/eric/Data_3/Astrostat/Fiducial_reproc/moments
     # Face comparison
     mkdir ${results_dir}/face_compare
+    # Hot fiducial comparison
+    mkdir ${results_dir}/hot_compare
+    mkdir ${results_dir}/hot_compare/HDF5_files
 
 fi
 
@@ -68,6 +72,12 @@ if [[ ${file_copy} -eq 1 ]]; then
 
     # Face comparisons
     rsync ekoch@jasper.westgrid.ca:/home/ekoch/sims/results/face_compare/*.csv ${results_dir}/face_compare
+
+    # Hot fiducial comparisons
+    rsync ekoch@jasper.westgrid.ca:/home/ekoch/sims/results/hot_compare/*.h5 ${results_dir}/hot_compare/HDF5_files/
+    # Need the fiducial-fiducial clean comparisons here (no need to be re-running them)
+    rsync ekoch@jasper.westgrid.ca:/home/ekoch/sims/results/clean_results/SimSuite8_fiducialfid_comp*.h5 ${results_dir}/hot_compare/HDF5_files/
+
 fi
 
 # Run the pipeline for the clean and noisy distances
@@ -129,4 +139,9 @@ fi
 
 if [[ ${face_comparison} -eq 1 ]]; then
     python ${scripts_dir}/viewing_angle_comparison.py ${results_dir}/face_compare
+fi
+
+if [[ ${hot_comparison} -eq 1 ]]; then
+    cd ${results_dir}/hot_compare
+    python ${scripts_dir}/analysis_pipeline.py . ${results_dir}/Design7Matrix.csv ${scripts_dir} ${results_dir}/hot_compare/hot_compare mean F
 fi
