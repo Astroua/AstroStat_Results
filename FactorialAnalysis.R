@@ -47,7 +47,15 @@ for(i in 1:numStat)
     mod=paste(stats[i],'~fc*sf*vp*k*m*pb+(1|Cube)',sep='')
     ReMod=lmer(mod,REML=F,data=data)
 
-    TVals[,i]=matrix(summary(ReMod)$coeff[-1,3,drop=F])
+    tvals = matrix(summary(ReMod)$coeff[-1,3,drop=F])
+
+    if (length(tvals) != length(TVals[,i]))
+    {
+        print("Fit to statistic failed! Output is all zeros!")
+        TVals[,i] = rep(0, length(TVals[,i]))
+    } else {
+        TVals[,i]=matrix(summary(ReMod)$coeff[-1,3,drop=F])
+    }
 }
 
 TVals=data.frame(TVals)
