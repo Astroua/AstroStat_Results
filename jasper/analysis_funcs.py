@@ -86,7 +86,8 @@ def sort_distances(statistics, distances):
 def files_sorter(folder, fiducial_labels=np.arange(0, 5, 1),
                  design_labels=np.arange(0, 32, 1), timesteps='last',
                  faces=[0, 1, 2], suffix="fits", append_prefix=False,
-                 fiducial_timesteps=None):
+                 fiducial_timesteps=None, design_identifier="Design",
+                 fiducial_identifier="Fiducial"):
     '''
     If the entire simulation suite is in one directory, this function
     will spit out appropriate groupings.
@@ -106,6 +107,16 @@ def files_sorter(folder, fiducial_labels=np.arange(0, 5, 1),
         Faces of the simulations to use.
     suffix : str, optional
         File suffix.
+    append_prefix : bool, optional
+        Append the complete path to each file.
+    fiducial_timesteps : {None, list}, optional
+        Optionally provide specific timesteps to use for each fiducial.
+    design_identifier : str, optional
+        Unique string that identifies a design simulated cube. Default is
+        "Design".
+    fiducial_identifier : str, optional
+        Unique string that identifies a design simulated cube. Default is
+        "Fiducial".
     '''
 
     # Get the files and remove any sub-directories.
@@ -123,30 +134,34 @@ def files_sorter(folder, fiducial_labels=np.arange(0, 5, 1),
 
     # Sort the files
     for f in files:
-        if "Fiducial" in f:
+        # Track if the file was already classified.
+        identified = False
+        if fiducial_identifier in f:
             for lab in fiducial_labels:
-                if not "Fiducial" + str(lab) + "_" in f:
+                if not fiducial_identifier + str(lab) + "_" in f:
                     continue
                 for face in faces:
                     if "_0" + str(face) + "_" in f:
+                        identified = True
                         if append_prefix:
-                            fiducials[face][lab].append(folder + f)
+                            fiducials[face][lab].append(os.path.join(folder, f))
                         else:
                             fiducials[face][lab].append(f)
 
-        elif "Design" in f:
+        if design_identifier in f and not identified:
             for lab in design_labels:
-                if not "Design" + str(lab) + "_" in f:
+                if not design_identifier + str(lab) + "_" in f:
                     continue
                 for face in faces:
                     if "_0" + str(face) + "_" in f:
+                        identified = True
                         if append_prefix:
-                            designs[face][lab].append(folder + f)
+                            designs[face][lab].append(os.path.join(folder, f))
                         else:
                             designs[face][lab].append(f)
 
-        else:
-            print "Could not find a category for " + f
+        if not identified:
+            print("Could not find a category for " + f)
 
     # Sort and keep only the specified timesteps
     # Can supply different timesteps for the fiducials. This is needed for the
