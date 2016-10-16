@@ -196,8 +196,10 @@ if __name__ == "__main__":
 
     if use_hot_sims:
         design_sim_identifier = "FiducialHot"
+        design_labels = np.arange(0, 5, 1)
     else:
         design_sim_identifier = "Design"
+        design_labels = np.arange(0, 32, 1)
 
     # Run on single timesteps when each simulation is at ~ one free fall time
     if timesteps == "freefall":
@@ -233,7 +235,7 @@ if __name__ == "__main__":
         multi_timesteps = True
 
     fiducials, designs, timesteps_labels = \
-        files_sorter(PREFIX, timesteps=timesteps,
+        files_sorter(PREFIX, timesteps=timesteps, design_labels=design_labels,
                      append_prefix=True, fiducial_timesteps=fid_tsteps,
                      design_identifier=design_sim_identifier)
 
