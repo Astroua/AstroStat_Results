@@ -7,7 +7,7 @@
 #PBS -l walltime=1:00:00
 #PBS -m bea
 #PBS -M koch.eric.w@gmail.com
-#PBS -l epilogue=/home/ekoch/code_repos/simscript/epilogue.sh
+#PBS -l epilogue=/home/ekoch/code_repos/AstroStar_Results/jasper/job_epilogue.sh
 
 source /home/ekoch/.bashrc
 
