@@ -239,6 +239,8 @@ if __name__ == "__main__":
 
     if MULTICORE:
 
+        print("Creating pool at {}".format(datetime.now()))
+
         use_mpi = False
         if use_mpi:
             from mpipool import MPIPool
@@ -252,6 +254,9 @@ if __name__ == "__main__":
             from multiprocessing import Pool
             # Default to 10 for now. Will change if this works.
             pool = Pool(processes=12)
+
+        print("Created pool at {}".format(datetime.now()))
+
     else:
         pool = None
 
@@ -297,6 +302,8 @@ if __name__ == "__main__":
         simulation_runs = fiducial_index
         # face = comp_face
     else:  # Normal case of comparing to single fiducial
+
+        print("Running fiducial to design comparisons.")
 
         distances_storage = \
             run_all(fiducials[face][fiducial_num],
