@@ -10,6 +10,7 @@ import os
 from pandas import DataFrame
 import numpy as np
 from multiprocessing import Pool, Manager
+from datetime import datetime
 
 from turbustat.statistics import stats_wrapper, statistics_list
 
@@ -62,8 +63,12 @@ def runner(args):
                                  os.path.basename(name2)])
 
 
+print("Starting pool at {}".format(datetime.now()))
+
 if multiprocess:
-    pool = Pool(processes=11)
+    pool = Pool(processes=12)
+
+print("Pool created at {}".format(datetime.now()))
 
 # Run distance between comparisons
 
@@ -75,6 +80,9 @@ for stat in stats_dict:
         stats_dict[stat] = []
 
 for fid in fiducials[int(comp[0])]:
+
+    print("On fiducial {0} of {1}".format(fid, len(fiducials[int(comp[0])])))
+    print(str(datetime.now()))
 
     if multiprocess:
         iterat = ((fiducials[int(comp[0])][fid][i],
@@ -98,7 +106,12 @@ for fid in fiducials[int(comp[0])]:
                 stats_dict[stat].append(output[stat], os.path.basename(name1),
                                         os.path.basename(name2))
 
+print("Finished fiducial at {}".format(datetime.now()))
+
 for des in designs[int(comp[0])]:
+
+    print("On design {0} of {1}".format(fid, len(fiducials[int(comp[0])])))
+    print(str(datetime.now()))
 
     if multiprocess:
         iterat = ((designs[int(comp[0])][des][i],
@@ -121,6 +134,8 @@ for des in designs[int(comp[0])]:
             for stat in output:
                 stats_dict[stat].append(output[stat], os.path.basename(name1),
                                         os.path.basename(name2))
+
+print("Finished designs at {}".format(datetime.now()))
 
 if multiprocess:
     pool.close()
