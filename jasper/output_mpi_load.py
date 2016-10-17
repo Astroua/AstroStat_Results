@@ -253,9 +253,11 @@ if __name__ == "__main__":
                 pool.wait()
                 sys.exit(0)
         else:
-            from multiprocessing import Pool
+            from multiprocessing import Pool, cpu_count
             # Default to 10 for now. Will change if this works.
-            pool = Pool(processes=12)
+            psize = cpu_count()
+            print("Found {} CPUs to run on.")
+            pool = Pool(processes=psize)
 
         print("Created pool at {}".format(datetime.now()))
 
