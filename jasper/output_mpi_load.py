@@ -12,6 +12,8 @@ from turbustat.statistics import stats_wrapper, statistics_list
 
 from analysis_funcs import (load_and_reduce, single_input, sort_distances,
                             files_sorter)
+from timeout import time_limit, TimeoutException
+
 
 np.random.seed(248954785)
 
@@ -257,7 +259,17 @@ if __name__ == "__main__":
             # Default to 10 for now. Will change if this works.
             psize = cpu_count()
             print("Found {} CPUs to run on.".format(psize))
-            pool = Pool(processes=psize)
+            try:
+                # Something is wrong if the pool creation hangs
+                with time_limit(120):
+                    pool = Pool(processes=psize)
+            except TimeoutException:
+                print("Pool creation failed.")
+                print("These are the args: {}".format(sys.argv[1:]))
+                print("Fiducials: {}".format(fiducials))
+                print("Designs: {}".format(designs))
+
+                raise TimeoutException("Pool creation failed.")
 
         print("Created pool at {}".format(datetime.now()))
 
