@@ -256,7 +256,7 @@ if __name__ == "__main__":
             from multiprocessing import Pool, cpu_count
             # Default to 10 for now. Will change if this works.
             psize = cpu_count()
-            print("Found {} CPUs to run on.")
+            print("Found {} CPUs to run on.".format(psize))
             pool = Pool(processes=psize)
 
         print("Created pool at {}".format(datetime.now()))
