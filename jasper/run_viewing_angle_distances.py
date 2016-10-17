@@ -9,7 +9,7 @@ import sys
 import os
 from pandas import DataFrame
 import numpy as np
-from multiprocessing import Pool, Manager
+from multiprocessing import Pool, Manager, cpu_count
 from datetime import datetime
 
 from turbustat.statistics import stats_wrapper, statistics_list
@@ -66,7 +66,9 @@ def runner(args):
 print("Starting pool at {}".format(datetime.now()))
 
 if multiprocess:
-    pool = Pool(processes=12)
+    psize = cpu_count()
+    print("Found {} CPUs to run on.".format(psize))
+    pool = Pool(processes=psize)
 
 print("Pool created at {}".format(datetime.now()))
 
