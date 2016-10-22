@@ -112,7 +112,7 @@ print("Finished fiducial at {}".format(datetime.now()))
 
 for des in designs[int(comp[0])]:
 
-    print("On design {0} of {1}".format(fid, len(fiducials[int(comp[0])])))
+    print("On design {0} of {1}".format(des, len(designs[int(comp[0])])))
     print(str(datetime.now()))
 
     if multiprocess:
