@@ -261,7 +261,7 @@ if __name__ == "__main__":
             print("Found {} CPUs to run on.".format(psize))
             try:
                 # Something is wrong if the pool creation hangs
-                with time_limit(120):
+                with time_limit(9):
                     pool = Pool(processes=psize)
             except TimeoutException:
                 print("Pool creation failed.")

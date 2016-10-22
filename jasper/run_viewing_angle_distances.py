@@ -9,7 +9,7 @@ import sys
 import os
 from pandas import DataFrame
 import numpy as np
-from multiprocessing import Pool, Manager, cpu_count
+from multiprocessing import Manager
 from datetime import datetime
 
 from turbustat.statistics import stats_wrapper, statistics_list
@@ -51,7 +51,7 @@ fiducials, designs = files_sorter(path_to_data, timesteps='max',
 def runner(args):
     name1, name2, comp, stats_dict = args
 
-    print("On {0} {1}".format(name1, name2))
+    # print("On {0} {1}".format(name1, name2))
 
     dataset1 = load_and_reduce(name1)
     dataset2 = load_and_reduce(name2)
@@ -66,9 +66,21 @@ def runner(args):
 print("Starting pool at {}".format(datetime.now()))
 
 if multiprocess:
-    psize = cpu_count()
-    print("Found {} CPUs to run on.".format(psize))
-    pool = Pool(processes=psize)
+
+    use_mpi = True
+    if use_mpi:
+        from mpipool import MPIPool
+        pool = MPIPool(loadbalance=False)
+
+        if not pool.is_master():
+            # Wait for instructions from the master process.
+            pool.wait()
+            sys.exit(0)
+    else:
+        from multiprocessing import cpu_count, Pool
+        psize = cpu_count()
+        print("Found {} CPUs to run on.".format(psize))
+        pool = Pool(processes=psize)
 
 print("Pool created at {}".format(datetime.now()))
 
@@ -139,9 +151,6 @@ for des in designs[int(comp[0])]:
 
 print("Finished designs at {}".format(datetime.now()))
 
-if multiprocess:
-    pool.close()
-
 # Convert to normal lists
 if multiprocess:
     for stat in stats_dict:
@@ -160,3 +169,8 @@ for i, stat in enumerate(stats_dict.keys()):
 df = DataFrame(stats_dict)
 df.to_csv(os.path.join(results_dir,
                        "view_angle_comparison_{}.csv".format(comp)))
+
+if multiprocess:
+    pool.close()
+
+print("Done at {}".format(datetime.now()))

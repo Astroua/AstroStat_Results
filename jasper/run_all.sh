@@ -122,11 +122,11 @@ DATA_DIR=/lustre/home/ekoch/sims/SimSuite8/
 RESULTS_DIR=/lustre/home/ekoch/sims/results/face_compare/
 if [[ $run_face_compare -eq 1 ]]; then
     # Face 0 to Face 1
-    qsub -N face_comparison_0_1 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00,epilogue=$SCRIPT_PATH/jasper/job_epilogue.sh -d . <<< "/home/ekoch/miniconda/bin/python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 0 1 $RESULTS_DIR"
+    qsub -N face_comparison_0_1 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FACE_1=0,FACE_2=1,DATA_DIR=$DATA_DIR,RESULTS_DIR=$RESULTS_DIR $SCRIPT_PATH/jasper/run_viewing_angle_distances.pbs
     # Face 0 to Face 2
-    qsub -N face_comparison_0_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00,epilogue=$SCRIPT_PATH/jasper/job_epilogue.sh -d . <<< "/home/ekoch/miniconda/bin/python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 0 2 $RESULTS_DIR"
+    qsub -N face_comparison_0_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FACE_1=0,FACE_2=2,DATA_DIR=$DATA_DIR,RESULTS_DIR=$RESULTS_DIR $SCRIPT_PATH/jasper/run_viewing_angle_distances.pbs
     # Face 1 to Face 2
-    qsub -N face_comparison_1_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00,epilogue=$SCRIPT_PATH/jasper/job_epilogue.sh -d . <<< "/home/ekoch/miniconda/bin/python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR 1 2 $RESULTS_DIR"
+    qsub -N face_comparison_1_2 -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FACE_1=1,FACE_2=2,DATA_DIR=$DATA_DIR,RESULTS_DIR=$RESULTS_DIR $SCRIPT_PATH/jasper/run_viewing_angle_distances.pbs
 fi
 
 DATA_DIR=/lustre/home/ekoch/sims/SimSuite8_hot/
