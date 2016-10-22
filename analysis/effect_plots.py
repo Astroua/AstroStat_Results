@@ -2,6 +2,7 @@
 '''
 Read in the effects from the fit and plot the important effects.
 '''
+from __future__ import division
 
 import matplotlib as mpl
 import matplotlib.pyplot as p
@@ -19,7 +20,7 @@ p.rcParams.update({'font.size': 14})
 
 def effect_plots(distance_file, effects_file, min_zscore=2.0, statistics=None,
                  params=["fc", "pb", "m", "k", "sf", "vp"], save=False,
-                 out_path=None):
+                 out_path=None, output_name=None):
     '''
     Creates a series of plots for the important effects in the model.
     '''
@@ -38,7 +39,11 @@ def effect_plots(distance_file, effects_file, min_zscore=2.0, statistics=None,
     design = distances.T.ix[params].T
 
     # Now drop the design matrix and the Fiducial number
-    distances = distances.T.drop(params + ["Cube"]).T
+    distances = distances.T.drop(params).T
+    try:
+        distances = distances.T.drop(["Cube"]).T
+    except ValueError:
+        pass
 
     # Get the model effects from the index
     model_effects = effects.index
@@ -65,15 +70,15 @@ def effect_plots(distance_file, effects_file, min_zscore=2.0, statistics=None,
             continue
 
         # Ignore higher than 2nd order effects
-        response = response[:21]
+        cut_to_2nd = int(len(params) + 0.5 * (len(params) * (len(params) - 1)))
+        response = response[:cut_to_2nd]
 
         # Find the most important effects 2nd order effects
         # Values are ~ z-scores. Significant effects have an absolute value
         # greater than 2.
-        imp_inters = response[6:].order(ascending=False)[:3]
+        imp_inters = response[len(params):].order(ascending=False)[:3]
 
         # Create colours based on the absolute values of the responses
-        # cool = p.get_cmap('cool')
         milagro = \
             colormap_milagro(np.log10(response.min()),
                              np.log10(response.max()),
@@ -84,10 +89,12 @@ def effect_plots(distance_file, effects_file, min_zscore=2.0, statistics=None,
 
         # Create plots for the main effects, regardless of importance
         fig, axes = p.subplots(3, 3, sharex=True)
-        for i, (param, ax) in enumerate(zip(params+list(imp_inters.index), axes.flatten())):
-            if i < 6:
+        for i, (param, ax) in enumerate(zip(params + list(imp_inters.index),
+                                            axes.flatten())):
+            if i < len(params):
                 low_data = distances[stat][design[param] == -1]
                 high_data = distances[stat][design[param] == 1]
+
                 ax.plot([-1, 1], [low_data.mean(), high_data.mean()],
                         marker="D",
                         color=scalMap.to_rgba(np.log10(response[param])),
@@ -182,11 +189,12 @@ def effect_plots(distance_file, effects_file, min_zscore=2.0, statistics=None,
                      xytext=(0.83, 0.91), textcoords='figure fraction')
 
         if save:
-            out_name = "full_factorial_"+stat+"_modeleffects.pdf"
+            out_name = "full_factorial_{0}_modeleffects.pdf".format(stat)
+            if output_name is not None:
+                out_name = "{0}_{1}".format(output_name, out_name)
+
             if out_path is not None:
-                if out_path[-1] != "/":
-                    out_path += "/"
-                out_name = out_path + out_name
+                out_name = os.path.join(out_path, out_name)
             fig.savefig(out_name)
             p.close()
         else:
@@ -286,6 +294,170 @@ def map_all_results(effects_file, min_zscore=2.0, save_name=None,
         p.show()
 
 
+def make_coefplots(data, endog_formula="fc*m*k*pb*vp*sf",
+                   statistics=None, min_tvalue=2, save=False,
+                   out_path=None, output_name=None):
+    '''
+    Create coefplots for all statistics in a given data file.
+    '''
+
+    if isinstance(data, str):
+        data = read_csv(data)
+
+    if statistics is None:
+        statistics = statistics_list
+
+    _reset_interactive = False
+    if p.isinteractive():
+        _reset_interactive = True
+        p.ioff()
+
+    for stat in statistics:
+
+        if stat not in data.columns:
+            warnings.warn("{} is not in the given data.".format(stat))
+            continue
+
+        coefplot("{0} ~ {1}".format(stat, endog_formula), data,
+                 min_tvalue=min_tvalue)
+
+        if save:
+            out_name = "full_factorial_{0}_coefplot.pdf".format(stat)
+            if output_name is not None:
+                out_name = "{0}_{1}".format(output_name, out_name)
+
+            if out_path is not None:
+                out_name = os.path.join(out_path, out_name)
+            p.savefig(out_name)
+            p.close()
+        else:
+            p.show()
+
+    if _reset_interactive:
+        p.ion()
+
+
+def coefplot(formula, data, intercept=False, ci=95, min_tvalue=2,
+             mixed_effect="Cube", sig_color='r', nonsig_color='k'):
+    """Plot the coefficients from a linear model.
+
+    Parameters
+    ----------
+    formula : string
+        patsy formula for ols model
+    data : dataframe
+        data for the plot; formula terms must appear in columns
+    groupby : grouping object, optional
+        object to group data with to fit conditional models
+    intercept : bool, optional
+        if False, strips the intercept term before plotting
+    ci : float, optional
+        size of confidence intervals
+    palette : {seaborn color palette, color}, optional
+        palette for the horizonal plots or a single color
+
+    """
+
+    try:
+        import statsmodels.formula.api as sf
+        _has_statsmodels = True
+    except ImportError:
+        _has_statsmodels = False
+
+    if not _has_statsmodels:
+        raise ImportError("The `coefplot` function requires statsmodels")
+
+    import pandas as pd
+
+    alpha = 1 - ci / 100
+    if mixed_effect is None:
+        model = sf.ols(formula, data).fit()
+    else:
+        model = sf.mixedlm(formula, data,
+                           groups=data[mixed_effect]).fit(reml=False)
+    coefs = model.params
+
+    # Order by term order. This should be a default in statsmodels IMO.
+    ind = list(coefs.index)
+    ind.sort(key=lambda x: x.count(":"))
+    ind = pd.Index(ind)
+    coefs = coefs[ind]
+
+    cis = model.conf_int(alpha).T[ind].T
+    tvals = np.abs(model.tvalues)[ind]
+    model_effects = ind
+
+    # Possibly ignore the intercept
+    if not intercept:
+        coefs = coefs.ix[model_effects != "Intercept"]
+        cis = cis.ix[model_effects != "Intercept"]
+        tvals = tvals.ix[model_effects != "Intercept"]
+        model_effects = model_effects[model_effects != "Intercept"]
+
+        if mixed_effect is not None:
+            coefs = coefs.ix[model_effects != "Intercept RE"]
+            cis = cis.ix[model_effects != "Intercept RE"]
+            tvals = tvals.ix[model_effects != "Intercept RE"]
+            model_effects = model_effects[model_effects != "Intercept RE"]
+
+    n_terms = len(coefs)
+
+    rep_name = {'fc': "F", "pb": r'$\beta$', 'm': r'$\mathcal{M}$',
+                'k': r'$k$', 'sf': r'$\zeta$',
+                'vp': r'$\alpha$'}
+
+    w, h = mpl.rcParams["figure.figsize"]
+    hsize = lambda n: n * (h / 2)
+    wsize = lambda n: n * (w / (4 * (n / 5)))
+
+    fig, ax = p.subplots(1, 1, figsize=(hsize(1.5), wsize(n_terms)))
+    for i, term in enumerate(coefs.index):
+        if tvals[term] < min_tvalue:
+            color = nonsig_color
+            symbol = '^'
+        else:
+            color = sig_color
+            symbol = 'o'
+
+        low, high = cis.ix[term]
+        ax.plot([low, high], [i, i], c=color,
+                solid_capstyle="round", lw=2.5)
+        ax.plot(coefs.ix[term], i, symbol, c=color, ms=8)
+        # ax.plot([i, i], [low, high], c=color,
+        #         solid_capstyle="round", lw=2.5)
+        # ax.plot(i, coefs.ix[term], symbol, c=color, ms=8)
+    ax.set_ylim(-.5, n_terms - .5)
+    ax.set_xlabel("Coefficent Values")
+    ax.axvline(0, ls="--", c="dimgray")
+    ax.grid(True)
+
+    # Change to the nice parameter labels
+    altered_labels = []
+    for mod in model_effects:
+        if ":" in mod:
+            new_mod = []
+            for param in mod.split(":"):
+                new_mod.append(rep_name[param])
+        else:
+            new_mod = [rep_name[mod]]
+        altered_labels.append(":".join(new_mod))
+
+    p.yticks(np.arange(len(model_effects)), altered_labels, rotation=0)
+
+    # Add in a legend with the symbols wrt min_tval
+    sig_artist = p.Line2D((0, 1), (0, 0), color=sig_color, marker='o',
+                          linestyle='-')
+    nonsig_artist = p.Line2D((0, 1), (0, 0), color=nonsig_color, marker='^',
+                             linestyle='-')
+
+    ax.legend([sig_artist, nonsig_artist],
+              [r"$t$-value > {0:.2f}".format(min_tvalue),
+               r"$t$-value < {0:.2f}".format(min_tvalue)], frameon=True,
+              loc='best')
+
+    p.tight_layout()
+
+
 def colormap_milagro(vmin, vmax, vtransition, width=0.0001, huestart=0.6):
 
     """
@@ -365,6 +537,9 @@ def colormap_milagro(vmin, vmax, vtransition, width=0.0001, huestart=0.6):
     from colorsys import hls_to_rgb
 
     from matplotlib.colors import LinearSegmentedColormap
+
+    if not vtransition > vmin:
+        raise ValueError("vtransition must be greater than vmin.")
 
     # Compute normalised red, blue, yellow values
     transition = float(vtransition - vmin) / (vmax - vmin)
