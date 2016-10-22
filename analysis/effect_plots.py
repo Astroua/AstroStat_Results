@@ -18,7 +18,7 @@ from turbustat.statistics import statistics_list
 p.rcParams.update({'font.size': 14})
 
 
-def effect_plots(distance_file, effects_file, min_zscore=2.0, statistics=None,
+def effect_plots(distance_file, effects_file, min_tscore=2.0, statistics=None,
                  params=["fc", "pb", "m", "k", "sf", "vp"], save=False,
                  out_path=None, output_name=None):
     '''
@@ -82,7 +82,7 @@ def effect_plots(distance_file, effects_file, min_zscore=2.0, statistics=None,
         milagro = \
             colormap_milagro(np.log10(response.min()),
                              np.log10(response.max()),
-                             np.log10(min_zscore))
+                             np.log10(min_tscore))
         cNorm = cols.Normalize(vmin=np.log10(response.min()),
                                vmax=np.log10(response.max()))
         scalMap = cm.ScalarMappable(norm=cNorm, cmap=milagro)
@@ -203,10 +203,11 @@ def effect_plots(distance_file, effects_file, min_zscore=2.0, statistics=None,
             p.show()
 
 
-def map_all_results(effects_file, min_zscore=2.0, save_name=None,
+def map_all_results(effects_file, min_tscore=2.0, max_tscore=10.0,
+                    save_name=None,
                     max_order=2, statistics=statistics_list,
-                    normed=True, out_path=None,
-                    params={"fc": "Face", "pb": r"$\beta$",
+                    normed=False, out_path=None,
+                    params={"fc": "F", "pb": r"$\beta$",
                             "m": r"$\mathcal{M}$", "k": r"$k$",
                             "sf": r"$\zeta$", "vp": r"$\alpha$"}):
 
@@ -251,7 +252,7 @@ def map_all_results(effects_file, min_zscore=2.0, save_name=None,
                     for param in splitted:
                         norm_factor *= effects[stat][param]
                     value = np.power(effects[stat][effect] / norm_factor,
-                                     1/float(len(splitted)))
+                                     1 / float(len(splitted)))
                 else:
                     value = effects[stat][effect]
                 values[i, j] = value
@@ -265,13 +266,27 @@ def map_all_results(effects_file, min_zscore=2.0, save_name=None,
             model_effects = [eff.replace(param, params[param])
                              for eff in model_effects]
 
-    milagro = \
-        colormap_milagro(0, 10, 2)
+    # Use the maximum from the whole set.
+    if max_tscore is None:
+        max_tscore = values.max()
+        print(max_tscore)
 
-    p.imshow(values, vmin=0, vmax=10, cmap=milagro,
+    milagro = \
+        colormap_milagro(0, max_tscore, min_tscore)
+
+    w, h = mpl.rcParams["figure.figsize"]
+    hsize = lambda n: n * (h / 2)
+    wsize = lambda n: n * (w / (4 * (n / 5)))
+
+    n_terms = values.shape[1]
+
+    fig, ax = p.subplots(1, 1, figsize=(hsize(1.5), wsize(n_terms)))
+
+    # Flip dimension to put lowest terms at the bottom
+    p.imshow(values.T[::-1], vmin=0, vmax=max_tscore, cmap=milagro,
              interpolation="nearest")
-    p.xticks(np.arange(len(model_effects)), model_effects, rotation=90)
-    p.yticks(np.arange(len(statistics)), stat_labels)
+    p.yticks(np.arange(len(model_effects)), model_effects[::-1], rotation=0)
+    p.xticks(np.arange(len(statistics)), stat_labels, rotation=90)
     cbar = p.colorbar(fraction=0.05, shrink=0.9)
     cbar.ax.set_ylabel(r'$t$-value')
     # cbar.ax.tick_params(labelsize=fontsize)
