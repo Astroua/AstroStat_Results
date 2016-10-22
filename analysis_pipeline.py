@@ -19,8 +19,8 @@ def timestring():
     TimeString = datetime.now().strftime("%Y%m%d%H%M%S%f")
     return TimeString
 
-# Specify path with results
 
+# Specify path with results
 path = os.path.abspath(sys.argv[1])
 
 if path.split("/")[-1] == "HDF5_files":
@@ -224,8 +224,20 @@ print("Creating model plots.")
 if not os.path.exists(os.path.join(path, "Model_Plots")):
     os.mkdir(os.path.join(path, "Model_Plots"))
 
+# What are we considering the min t-value to be?
+# min_tvalue = 2.0  # 95%
+min_tvalue = 3.46  # 99.9%
+
 ta.effect_plots("DataforFits.csv", "ResultsFactorial.csv", save=True,
-                out_path='Model_Plots')
+                out_path='Model_Plots', min_tvalue=min_tvalue)
+
+import seaborn as sb
+sb.set_context("poster", font_scale=1.2)
+sb.set_style('ticks')
+
+# Coef plots for all terms
+ta.make_coefplots("DataforFits.csv", save=True, out_path="Model_Plots",
+                  min_tvalue=min_tvalue)
 
 # Only show results of the good statistics
 if added_noise:
@@ -239,12 +251,9 @@ else:
                   "VCS", "VCS_Small_Scale", "VCS_Large_Scale", "Skewness",
                   "Kurtosis"]
 
-import seaborn as sb
-sb.set_context("poster", font_scale=1.5)
-sb.set_style('ticks')
-
-ta.map_all_results("ResultsFactorial.csv", normed=False, max_order=2,
+ta.map_all_results("ResultsFactorial.csv", normed=False, max_order=None,
                    save_name="map_all_results.pdf",
-                   out_path='Model_Plots', statistics=good_stats)
+                   out_path='Model_Plots', statistics=good_stats,
+                   min_tvalue=min_tvalue, max_tvalue=30)
 
 print("Finished!")

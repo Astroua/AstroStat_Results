@@ -18,7 +18,7 @@ from turbustat.statistics import statistics_list
 p.rcParams.update({'font.size': 14})
 
 
-def effect_plots(distance_file, effects_file, min_tscore=2.0, statistics=None,
+def effect_plots(distance_file, effects_file, min_tvalue=2.0, statistics=None,
                  params=["fc", "pb", "m", "k", "sf", "vp"], save=False,
                  out_path=None, output_name=None):
     '''
@@ -82,7 +82,7 @@ def effect_plots(distance_file, effects_file, min_tscore=2.0, statistics=None,
         milagro = \
             colormap_milagro(np.log10(response.min()),
                              np.log10(response.max()),
-                             np.log10(min_tscore))
+                             np.log10(min_tvalue))
         cNorm = cols.Normalize(vmin=np.log10(response.min()),
                                vmax=np.log10(response.max()))
         scalMap = cm.ScalarMappable(norm=cNorm, cmap=milagro)
@@ -203,7 +203,7 @@ def effect_plots(distance_file, effects_file, min_tscore=2.0, statistics=None,
             p.show()
 
 
-def map_all_results(effects_file, min_tscore=2.0, max_tscore=10.0,
+def map_all_results(effects_file, min_tvalue=2.0, max_tvalue=10.0,
                     save_name=None,
                     max_order=2, statistics=statistics_list,
                     normed=False, out_path=None,
@@ -267,12 +267,11 @@ def map_all_results(effects_file, min_tscore=2.0, max_tscore=10.0,
                              for eff in model_effects]
 
     # Use the maximum from the whole set.
-    if max_tscore is None:
-        max_tscore = values.max()
-        print(max_tscore)
+    if max_tvalue is None:
+        max_tvalue = values.max()
 
     milagro = \
-        colormap_milagro(0, max_tscore, min_tscore)
+        colormap_milagro(0, max_tvalue, min_tvalue)
 
     w, h = mpl.rcParams["figure.figsize"]
     hsize = lambda n: n * (h / 2)
@@ -283,7 +282,7 @@ def map_all_results(effects_file, min_tscore=2.0, max_tscore=10.0,
     fig, ax = p.subplots(1, 1, figsize=(hsize(1.5), wsize(n_terms)))
 
     # Flip dimension to put lowest terms at the bottom
-    p.imshow(values.T[::-1], vmin=0, vmax=max_tscore, cmap=milagro,
+    p.imshow(values.T[::-1], vmin=0, vmax=max_tvalue, cmap=milagro,
              interpolation="nearest")
     p.yticks(np.arange(len(model_effects)), model_effects[::-1], rotation=0)
     p.xticks(np.arange(len(statistics)), stat_labels, rotation=90)
