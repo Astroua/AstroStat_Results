@@ -352,7 +352,8 @@ def make_coefplots(data, endog_formula="fc*m*k*pb*vp*sf",
 
 
 def coefplot(formula, data, intercept=False, ci=95, min_tvalue=2,
-             mixed_effect="Cube", sig_color='r', nonsig_color='k'):
+             mixed_effect="Cube", sig_color='r', nonsig_color='k',
+             add_legend=False):
     """Plot the coefficients from a linear model.
 
     Parameters
@@ -458,16 +459,18 @@ def coefplot(formula, data, intercept=False, ci=95, min_tvalue=2,
 
     p.yticks(np.arange(len(model_effects)), altered_labels, rotation=0)
 
-    # Add in a legend with the symbols wrt min_tval
-    sig_artist = p.Line2D((0, 1), (0, 0), color=sig_color, marker='o',
-                          linestyle='-')
-    nonsig_artist = p.Line2D((0, 1), (0, 0), color=nonsig_color, marker='^',
-                             linestyle='-')
+    if add_legend:
+        # Add in a legend with the symbols wrt min_tval
+        sig_artist = p.Line2D((0, 1), (0, 0), color=sig_color, marker='o',
+                              linestyle='-')
+        nonsig_artist = p.Line2D((0, 1), (0, 0), color=nonsig_color,
+                                 marker='^',
+                                 linestyle='-')
 
-    ax.legend([sig_artist, nonsig_artist],
-              [r"$t$-value > {0:.2f}".format(min_tvalue),
-               r"$t$-value < {0:.2f}".format(min_tvalue)], frameon=True,
-              loc='best')
+        ax.legend([sig_artist, nonsig_artist],
+                  [r"$t$-value > {0:.2f}".format(min_tvalue),
+                   r"$t$-value < {0:.2f}".format(min_tvalue)], frameon=True,
+                  loc='best')
 
     p.tight_layout()
 
