@@ -446,6 +446,10 @@ def coefplot(formula, data, intercept=False, ci=95, min_tvalue=2,
     ax.axvline(0, ls="--", c="dimgray")
     ax.grid(True)
 
+    # Rotate x ticks labels
+    for label in ax.get_xticklabels():
+        label.set_rotation(90)
+
     # Change to the nice parameter labels
     altered_labels = []
     for mod in model_effects:
