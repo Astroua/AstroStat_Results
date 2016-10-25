@@ -16,8 +16,10 @@ y_all = rbind(FidDes00,FidDes22)
 fct = c(rep(c(1:32), 5), rep(33:64, 5))
 fct = as.factor(fct)
 
-r2 = rep(0,19)
-for(k in 1:19)
+nstats = length(names(y_all))
+
+r2 = rep(0,nstats)
+for(k in 1:nstats)
 {
     y=y_all[,k]
     r2[k]=summary(lm(y~fct))$r.sq
@@ -29,9 +31,9 @@ sts=names(y_all)
 y_all = y_all[,sr2]
 
 nperm = as.numeric(args[2])
-s = 19
+s = nstats
 pfv = matrix(0,nperm,s)
-p2 = rep(0,19)
+p2 = rep(0,nstats)
 
 for(k in 1:s)
 {
@@ -47,7 +49,7 @@ for(k in 1:s)
 
 p2 = p2 / nperm
 
-out_matrix = matrix(0, 19, 3)
+out_matrix = matrix(0, nstats, 3)
 out_matrix[, 1] = sts[sr2]
 out_matrix[, 2] = r2
 out_matrix[, 3] = p2
