@@ -220,8 +220,12 @@ def comparison_plot(path, num_fids=5, verbose=False,
             fig.subplots_adjust(top=top, bottom=bottom)
 
         if verbose:
-            # p.autoscale(True)
-            fig.show()
+            if p.isinteractive():
+                p.draw()
+                raw_input("Continue?")
+                p.close()
+            else:
+                fig.show()
         else:
             # p.autoscale(True)
             save_name = "distance_comparisons_" + stat + ".pdf"
