@@ -17,7 +17,7 @@ Calculate the moments for all of the cubes.
 
 
 def reduce_and_save(filename, add_noise=False, regrid_linewidth=False,
-                    rms_noise=0.001, output_path="", cube_output=None,
+                    rms_noise=0.001 * u.K, output_path="", cube_output=None,
                     nsig=3, slicewise_noise=True):
     '''
     Load the cube in and derive the property arrays.
@@ -26,9 +26,6 @@ def reduce_and_save(filename, add_noise=False, regrid_linewidth=False,
     if add_noise or regrid_linewidth:
 
         sc = SpectralCube.read(filename)
-
-        if regrid_linewidth:
-            sc = preprocessor(sc, min_intensity=nsig * rms_noise * u.K)
 
         if add_noise:
             if rms_noise is None:
@@ -39,27 +36,35 @@ def reduce_and_save(filename, add_noise=False, regrid_linewidth=False,
             # Optionally scale noise by 1/10th of the 98th percentile in the
             # cube
             if rms_noise == 'scaled':
-                rms_noise = 0.1 * np.percentile(cube[np.isfinite(cube)], 98)
+                rms_noise = 0.1 * \
+                    np.percentile(cube[np.isfinite(cube)], 98) * sc.unit
 
             from scipy.stats import norm
             if not slicewise_noise:
-                cube += norm.rvs(0.0, rms_noise, cube.shape)
+                cube += norm.rvs(0.0, rms_noise.value, cube.shape)
             else:
                 spec_shape = cube.shape[0]
                 slice_shape = cube.shape[1:]
                 for i in range(spec_shape):
-                    cube[i, :, :] += norm.rvs(0.0, rms_noise, slice_shape)
+                    cube[i, :, :] += norm.rvs(0.0, rms_noise.value,
+                                              slice_shape)
 
-            sc = SpectralCube(data=cube, wcs=sc.wcs)
+            sc = SpectralCube(data=cube * sc.unit, wcs=sc.wcs,
+                              meta={"BUNIT": "K"})
 
             mask = LazyMask(np.isfinite, sc)
             sc = sc.with_mask(mask)
+
+        if regrid_linewidth:
+            sc = preprocessor(sc, min_intensity=nsig * rms_noise,
+                              norm_intensity=False,
+                              norm_percentile=95)
 
     else:
         sc = filename
 
     reduc = Mask_and_Moments(sc, scale=rms_noise)
-    reduc.make_mask(mask=reduc.cube > nsig * reduc.scale * reduc.cube.unit)
+    reduc.make_mask(mask=reduc.cube > nsig * reduc.scale)
 
     reduc.make_moments()
     reduc.make_moment_errors()
@@ -128,7 +133,7 @@ if __name__ == "__main__":
     elif is_obs:
         rms_noise = None
     else:
-        rms_noise = 0.001
+        rms_noise = 0.001 * u.K
 
     np.random.seed(248954785)
 
@@ -139,7 +144,7 @@ if __name__ == "__main__":
     #     pool.wait()
     #     sys.exit(0)
 
-    pool = Pool(processes=7)
+    pool = Pool(processes=3)
 
     pool.map(single_input, zip(fits_files,
                                repeat(add_noise),
@@ -149,3 +154,10 @@ if __name__ == "__main__":
                                repeat(cube_output)))
 
     pool.close()
+
+    # map(single_input, zip(fits_files,
+    #                       repeat(add_noise),
+    #                       repeat(regrid_linewidth),
+    #                       repeat(rms_noise),
+    #                       repeat(output_folder),
+    #                       repeat(cube_output)))
