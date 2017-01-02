@@ -128,7 +128,10 @@ def run_all(fiducial, simulation_runs, statistics, savename,
 
     return distances_storage
 
+
 if __name__ == "__main__":
+
+    from copy import copy
 
     # Call as:
     # python output.py path/to/folder/ 0 0 1 max fiducial0 T
@@ -143,7 +146,9 @@ if __name__ == "__main__":
     #               "PDF_Hellinger", "PDF_KS", "Dendrogram_Hist",
     #               "Dendrogram_Num"]
 
-    statistics = statistics_list
+    statistics = copy(statistics_list)
+    # Remove Tsallis
+    statistics.remove("Tsallis")
 
     print "Statistics to run: %s" % (statistics)
     num_statistics = len(statistics)
