@@ -15,7 +15,7 @@ Common functions for the different analysis scripts
 def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
                      noise_added):
 
-    # Derive the property arrays assuming uniform noise (for sims)
+    # Load the property arrays assuming uniform noise (for sims)
     fiducial_dataset = load_and_reduce(fiducial_timestep)
     testing_dataset = load_and_reduce(testing_timestep)
 
@@ -24,13 +24,22 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
     else:
         vcs_break = -0.8
 
+    # Find the minimum intensity values for computing dendrograms
+    fid_noise = 0.1 * np.nanpercentile(fiducial_dataset["cube"][0], 98)
+    test_noise = 0.1 * np.nanpercentile(testing_dataset["cube"][0], 98)
+
+    dendro_params_fid = {"min_value": 2 * fid_noise, "min_npix": 10}
+    dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 10}
+    dendro_params = [dendro_params_fid, dendro_params_test]
+
     # The simulations (in set 8) are not benefiting from adding a break,
     # and including one makes the fitting for a few unstable
     vca_break = None
 
     distances = stats_wrapper(fiducial_dataset, testing_dataset,
                               statistics=statistics, multicore=True,
-                              vca_break=vca_break, vcs_break=vcs_break)
+                              vca_break=vca_break, vcs_break=vcs_break,
+                              dendro_params=dendro_params)
     return distances
 
 
