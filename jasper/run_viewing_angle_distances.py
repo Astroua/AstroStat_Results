@@ -67,7 +67,7 @@ print("Starting pool at {}".format(datetime.now()))
 
 if multiprocess:
 
-    use_mpi = True
+    use_mpi = False
     if use_mpi:
         from mpipool import MPIPool
         pool = MPIPool(loadbalance=False)

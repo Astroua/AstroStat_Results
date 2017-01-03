@@ -11,6 +11,6 @@ source /home/ekoch/.bashrc
 
 echo "Starting at: `date`"
 echo "Given parameters: $DATA_DIR, $FACE_1, $FACE_2, $RESULTS_DIR"
-mpirun python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR $FACE_1 $FACE_2 $RESULTS_DIR
+ipython $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR $FACE_1 $FACE_2 $RESULTS_DIR
 # python2.7 $SCRIPT_PATH/jasper/run_viewing_angle_distances.py $DATA_DIR $FACE_1 $FACE_2 $RESULTS_DIR
 echo "Exited with code $? at: `date`"
