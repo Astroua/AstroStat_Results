@@ -181,10 +181,20 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
         vca_break = [None, -0.7]
         vcs_break = -0.5
 
+    # Min values to compute the dendrogram at. This doesn't affect the
+    # COMPLETE dendrograms since they are loaded in.
+    fid_noise = 0.1 * np.nanpercentile(fiducial_dataset["cube"][0], 98)
+    test_noise = 0.1 * np.nanpercentile(testing_dataset["cube"][0], 98)
+
+    dendro_params_fid = {"min_value": 2 * fid_noise, "min_npix": 10}
+    dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 10}
+    dendro_params = [dendro_params_fid, dendro_params_test]
+
     distances = stats_wrapper(fiducial_dataset, testing_dataset,
                               statistics=statistics, multicore=True,
                               vca_break=vca_break, vcs_break=vcs_break,
-                              dendro_saves=dendro_saves)
+                              dendro_saves=dendro_saves,
+                              dendro_params=dendro_params)
 
     return distances, fits1, fits2
 
