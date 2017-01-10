@@ -24,7 +24,7 @@ SCRIPT_PATH=/home/ekoch/code_repos/AstroStat_Results/
 # COMPARE_TYPE='max'
 # COMPARE_TYPE=freefall
 
-for COMPARE_TYPE in 'max', 'freefall'; do
+for COMPARE_TYPE in 'max' 'freefall'; do
 
     echo "Running comparison type: "$COMPARE_TYPE
 
