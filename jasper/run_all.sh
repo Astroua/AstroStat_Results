@@ -40,7 +40,7 @@ for COMPARE_TYPE in 'max' 'freefall'; do
     if [[ $run_clean -eq 1 ]]; then
         # Run face 0 and face 2 design to fiducial comparisons
         for face1 in {0,2}; do
-            for face2 in {0,2}; do
+            for face2 in {0,2}; doresidual plots for Gaussian fit figures
                 for fid in {0..4}; do
                     qsub -N fiducial_"$fid"_"$face1"_"$face2"_"$COMPARE_TYPE" -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FIDUCIAL=$fid,FACE_1=$face1,FACE_2=$face2,DATA_DIR=$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR,COMPARE_TYPE=$COMPARE_TYPE $SCRIPT_PATH/jasper/fiducial_submit.pbs
                 done
@@ -106,7 +106,7 @@ if [[ $run_hotfid_compare -eq 1 ]]; then
         for face2 in {0,2}; do
             # qsub -N fiducial_regrid_comp_"$face1"_"$face2" -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FIDUCIAL="fid_comp",FACE_1=$face1,FACE_2=$face2,DATA_DIR=$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR,COMPARE_TYPE=$COMPARE_TYPE $SCRIPT_PATH/jasper/fiducial_submit.pbs
             for fid in {0..4}; do
-                qsub -N fiducial_hot_"$fid"_"$face1"_"$face2" -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FIDUCIAL=$fid,FACE_1=$face1,FACE_2=$face2,DATA_DIR=$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR,COMPARE_TYPE=$COMPARE_TYPE,HOT_RUN=T $SCRIPT_PATH/jasper/fiducial_submit.pbs
+                qsub -N fiducial_hot_"$fid"_"$face1"_"$face2" -l nodes=$NODE:ppn=$PROCS,pmem=$PMEM,walltime=$HOURS:00:00 -v SCRIPT_PATH=$SCRIPT_PATH,FIDUCIAL=$fid,FACE_1=$face1,FACE_2=$face2,DATA_DIR=$DATA_DIR,ADD_NOISE=$ADD_NOISE,RESULTS_DIR=$RESULTS_DIR,COMPARE_TYPE="max",HOT_RUN=T $SCRIPT_PATH/jasper/fiducial_submit.pbs
             done
         done
     done
