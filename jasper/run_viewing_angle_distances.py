@@ -12,7 +12,8 @@ import numpy as np
 from multiprocessing import Manager
 from datetime import datetime
 
-from turbustat.statistics import stats_wrapper, statistics_list
+from wrapping_function import stats_wrapper
+from turbustat.statistics import statistics_list
 
 from analysis_funcs import load_and_reduce, files_sorter
 

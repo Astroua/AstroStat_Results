@@ -4,7 +4,7 @@ import os
 import numpy as np
 import copy
 
-from turbustat.statistics import stats_wrapper
+from wrapping_function import stats_wrapper
 
 
 '''

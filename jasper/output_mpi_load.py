@@ -7,7 +7,8 @@ from datetime import datetime
 from itertools import repeat
 
 
-from turbustat.statistics import stats_wrapper, statistics_list
+from wrapping_function import stats_wrapper
+from turbustat.statistics import statistics_list
 
 
 from analysis_funcs import (load_and_reduce, single_input, sort_distances,
@@ -150,6 +151,8 @@ if __name__ == "__main__":
     # Remove Tsallis
     statistics.remove("Tsallis")
 
+    statistics = ["SCF"]
+
     print "Statistics to run: %s" % (statistics)
     num_statistics = len(statistics)
 
@@ -267,7 +270,8 @@ if __name__ == "__main__":
             try:
                 # Something is wrong if the pool creation hangs
                 with time_limit(9):
-                    pool = Pool(processes=psize)
+                    # pool = Pool(processes=psize)
+                    pool = Pool(processes=4)
             except TimeoutException:
                 print("Pool creation failed.")
                 print("These are the args: {}".format(sys.argv[1:]))

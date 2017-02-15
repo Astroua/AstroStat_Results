@@ -5,7 +5,8 @@ from pandas import DataFrame, read_csv
 from itertools import combinations, repeat
 from datetime import datetime
 
-from turbustat.statistics import stats_wrapper, statistics_list
+from wrapping_function import stats_wrapper
+from turbustat.statistics import statistics_list
 
 '''
 COMPLETE comparisons.
