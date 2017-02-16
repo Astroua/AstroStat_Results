@@ -64,8 +64,13 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
     if fiducial_models is None:
         fiducial_models = {}
         for statistic in statistics:
+            if "PDF" in statistic:
+                statistic = "PDF"
+            elif statistic == "Skewness" or statistic == "Kurtosis":
+                statistic = "stat_moments"
+            elif "Dendrogram" in statistic:
+                statistic = "Dendrogram"
             fiducial_models[statistic] = None
-
 
     if any("Wavelet" in s for s in statistics):
         wavelet_distance = \
@@ -96,7 +101,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                              dataset2["moment0"],
                              weights1=dataset1["moment0_error"][0]**2.,
                              weights2=dataset2["moment0_error"][0]**2.,
-                             fiducial_model=fiducial_models['Pspec'])
+                             fiducial_model=fiducial_models['PSpec'])
             pspec_distance.distance_metric()
             distances["PSpec"] = pspec_distance.distance
             if not multicore:
@@ -134,7 +139,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
             genus_distance = \
                 GenusDistance(dataset1["moment0"],
                               dataset2["moment0"],
-                              fiducial_models=fiducial_model['Genus'])
+                              fiducial_model=fiducial_models['Genus'])
             genus_distance.distance_metric()
             distances["Genus"] = genus_distance.distance
             if not multicore:
@@ -161,7 +166,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
             vca_distance = VCA_Distance(dataset1["cube"],
                                         dataset2["cube"],
                                         breaks=vca_break,
-                                        fiducial_model=fiducial_model['VCA'])
+                                        fiducial_model=fiducial_models['VCA'])
             vca_distance.distance_metric()
             distances["VCA"] = vca_distance.distance
             if not multicore:
@@ -186,7 +191,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
             moment_distance = \
                 StatMoments_Distance(dataset1["moment0"],
                                      dataset2["moment0"], 5,
-                                     fiducial_model=fiducial_models['stats_moments'])
+                                     fiducial_model=fiducial_models['stat_moments'])
             moment_distance.distance_metric()
             distances["Skewness"] = moment_distance.skewness_distance
             distances["Kurtosis"] = moment_distance.kurtosis_distance
