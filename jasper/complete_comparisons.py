@@ -191,11 +191,20 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
     dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 10}
     dendro_params = [dendro_params_fid, dendro_params_test]
 
+    # Set the SCF boundary types.
+    if "SimSuite" in fits1:
+        scf_boundaries = ["continuous", "cut"]
+    elif "SimSuite" in fits2:
+        scf_boundaries = ["cut", "continuous"]
+    else:
+        scf_boundaries = ["cut", "cut"]
+
     distances = stats_wrapper(fiducial_dataset, testing_dataset,
                               statistics=statistics, multicore=True,
                               vca_break=vca_break, vcs_break=vcs_break,
                               dendro_saves=dendro_saves,
-                              dendro_params=dendro_params)
+                              dendro_params=dendro_params,
+                              scf_boundaries=scf_boundaries)
 
     return distances, fits1, fits2
 
