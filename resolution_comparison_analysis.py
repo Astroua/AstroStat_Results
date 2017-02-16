@@ -1,6 +1,6 @@
 
 from turbustat.data_reduction import Mask_and_Moments
-from turbustat.statistics import stats_wrapper, statistics_list
+from turbustat.statistics import statistics_list
 import os
 import sys
 import numpy as np
@@ -11,7 +11,9 @@ from astropy.utils.console import ProgressBar
 from spectral_cube import SpectralCube
 from astropy.io.fits import getheader
 from copy import copy
+from astropy import units as u
 
+from jasper.wrapping_function import stats_wrapper
 from jasper.analysis_funcs import files_sorter, sort_distances
 
 import matplotlib.pyplot as p
@@ -25,71 +27,97 @@ np.random.seed(446784788)
 # Note that the moments need to be saved. See reduce_and_save_moments.py
 # in jasper/
 
-run_regrid = False
+run_moments = False
 # To run on the regridded cubes, enable this
-try:
-    run_on_regridded = True if sys.argv[1] == "T" else False
-except IndexError:
-    run_on_regridded = True
+run_on_regridded = True if sys.argv[1] == "T" else False
 run_distances = True
-run_analysis = True
+run_analysis = False
 
 # path_to_data = "/media/eric/Data_3/Astrostat/SimSuite8/"
-path_to_data = "/media/eric/Data_3/Astrostat/Fiducial_reproc/"
+path_to_data = os.path.expanduser("~/MyRAID/Astrostat/SimSuite8/")
 moments_path = os.path.join(path_to_data, "moments/")
 
 # Only running on face 0
-faces = [0]
+faces = [2]
+
+path_to_256 = os.path.expanduser("~/MyRAID/Astrostat/Fiducial_256/")
 
 if run_on_regridded:
     print("Running on regridded 256 cubes.")
-    path_to_256 = "/media/eric/Data_3/Astrostat/Fiducial_256/regrid/"
+
+    regrid_path = os.path.join(path_to_256, "regrid")
+
+    # Regrid the 256 cubes to 128 and save them.
+    if not os.path.exists(regrid_path):
+        os.mkdir(regrid_path)
+
+        fiducials_256, _, _ = \
+            files_sorter(path_to_256, append_prefix=True, design_labels=[],
+                         fiducial_labels=[256], timesteps=1)
+
+        # Load in a 128 header to regrid to
+        hdr = getheader(os.path.join(path_to_data,
+                                     "homeerosSimSuite8Fiducial0_flatrho_0021_00_radmc.fits"))
+
+        for face in fiducials_256:
+            fid_256 = fiducials_256[face][256][0]
+
+            cube = SpectralCube.read(fid_256)
+
+            regrid_cube = cube.reproject(hdr)
+
+            regrid_cube.write(os.path.join(regrid_path,
+                                           fid_256.split("/")[-1]))
+    else:
+        print("Already running on regridded cubes. Won't regrid again.")
+
+    path_to_256 = os.path.expanduser("~/MyRAID/Astrostat/Fiducial_256/regrid/")
 else:
     print("Running on normal 256 cubes.")
-    path_to_256 = "/media/eric/Data_3/Astrostat/Fiducial_256/"
+
 moments_256_path = os.path.join(path_to_256, "moments/")
 
 path_to_128dists = \
-    "/media/eric/Data_3/Astrostat/results/clean/clean_20160725101641046250"
+    os.path.expanduser("~/MyRAID/Astrostat/results/clean/clean_20160725101641046250")
 
-output_path = "/media/eric/Data_3/Astrostat/results/resolution_comparison"
+output_path = \
+    os.path.expanduser("~/MyRAID/Astrostat/results/resolution_comparison")
 
-if run_regrid:
-    # Regrid the 256 cubes to 128 and save them.
-    fiducials_256, _, _ = \
-        files_sorter(path_to_256, append_prefix=True, design_labels=[],
-                     fiducial_labels=[256], timesteps=1)
 
-    # Load in a 128 header to regrid to
-    hdr = getheader(os.path.join(path_to_data,
-                                 "homeerosSimSuite8Fiducial0_flatrho_0021_00_radmc.fits"))
+# Sort those from the 128 set, and keep only the first timestep
+fiducials, _, _ = \
+    files_sorter(path_to_data, timesteps=1, faces=faces,
+                 append_prefix=True, design_labels=[])
+
+# Now the 256 cubes
+fiducials_256, _, _ = \
+    files_sorter(path_to_256, append_prefix=True, design_labels=[],
+                 faces=faces, fiducial_labels=[256], timesteps=1)
+
+if run_moments:
+    # Save moment arrays of the 256 cubes.
+
+    moments_path = os.path.join(path_to_256, "moments")
+    if not os.path.exists(moments_path):
+        os.mkdir(moments_path)
 
     for face in fiducials_256:
-        fid_256 = fiducials_256[face][256][0]
+        fid_name = fiducials_256[face][256][0]
+        mask_mom = Mask_and_Moments(fid_name, scale=0.001 * u.K)
+        mask_mom.make_moments()
+        mask_mom.make_moment_errors()
+        save_name = os.path.splitext(os.path.basename(fid_name))[0]
 
-        cube = SpectralCube.read(fid_256)
+        mask_mom.to_fits(os.path.join(moments_256_path, save_name))
 
-        regrid_cube = cube.reproject(hdr)
-
-        regrid_cube.write(os.path.join(path_to_256, "regrid",
-                                       fid_256.split("/")[-1]))
 
 if run_distances:
-
-    # Sort those from the 128 set, and keep only the first timestep
-    fiducials, _, _ = \
-        files_sorter(path_to_data, timesteps=1, faces=faces,
-                     append_prefix=True, design_labels=[])
-
-    # Now the 256 cubes
-    fiducials_256, _, _ = \
-        files_sorter(path_to_256, append_prefix=True, design_labels=[],
-                     faces=faces, fiducial_labels=[256], timesteps=1)
 
     # Set which stats to run.
     statistics = copy(statistics_list)
     # statistics.remove("Dendrogram_Hist")
     # statistics.remove("Dendrogram_Num")
+    statistics.remove("Tsallis")
 
     all_distances = {0: None, 1: None, 2: None}
 
@@ -107,6 +135,9 @@ if run_distances:
             Mask_and_Moments.from_fits(fid_256,
                                        moments_path=moments_256_path).to_dict()
 
+        fid_noise = 0.1 * np.nanpercentile(dataset1["cube"][0], 98)
+        dendro_params_fid = {"min_value": 2 * fid_noise, "min_npix": 10}
+
         # Loop through 128 fiducials
         for i, fid_num in enumerate(ProgressBar(fiducials[face].keys())):
             fid_128 = fiducials[face][fid_num][0]
@@ -114,16 +145,23 @@ if run_distances:
                 Mask_and_Moments.from_fits(fid_128,
                                            moments_path=moments_path).to_dict()
 
+            test_noise = 0.1 * np.nanpercentile(dataset2["cube"][0], 98)
+
+            dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 10}
+            dendro_params = [dendro_params_fid, dendro_params_test]
+
             if i == 0:
                 distances, fiducial_models = \
                     stats_wrapper(dataset1, dataset2,
-                                  statistics=statistics)
+                                  statistics=statistics,
+                                  dendro_params=dendro_params)
                 all_fiducial_models = fiducial_models
             else:
                 distances = \
                     stats_wrapper(dataset1, dataset2,
                                   fiducial_models=all_fiducial_models,
-                                  statistics=statistics)
+                                  statistics=statistics,
+                                  dendro_params=dendro_params)[0]
             distances = [distances]
             distances_storage[:, i:i + 1] = \
                 sort_distances(statistics, distances).T
