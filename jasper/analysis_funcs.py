@@ -23,6 +23,16 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
     fid_noise = 0.1 * np.nanpercentile(fiducial_dataset["cube"][0], 98)
     test_noise = 0.1 * np.nanpercentile(testing_dataset["cube"][0], 98)
 
+    # NOTE: These fit ranges are only valid for the 128^2 simulated cubes!
+
+    # Only fit to the inertial range for power spectrum based statistics
+    # Spat. PSpec., VCA, MVC
+    inertial_range = [[16. / 128.] * 2, [4.5 / 128.] * 2]
+
+    # Range to fit to delta-variance and wavelets
+    # 1/10 to 1/5 of the box avoids the obvious kernel effects on large-scales
+    spatial_range = [[11.] * 2, [27.] * 2]
+
     if noise_added:
         vcs_break = -0.5
         noise_value = [fid_noise, test_noise]
@@ -33,6 +43,7 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
     dendro_params_fid = {"min_value": 2 * fid_noise, "min_npix": 10}
     dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 10}
     dendro_params = [dendro_params_fid, dendro_params_test]
+    dendro_boundaries = [True, True]
 
     # The simulations (in set 8) are not benefiting from adding a break,
     # and including one makes the fitting for a few unstable
@@ -42,7 +53,10 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
                               statistics=statistics, multicore=True,
                               vca_break=vca_break, vcs_break=vcs_break,
                               dendro_params=dendro_params,
-                              noise_value=noise_value)
+                              noise_value=noise_value,
+                              inertial_range=inertial_range,
+                              spatial_range=spatial_range,
+                              dendro_periodic_boundaries=dendro_boundaries)
     return distances
 
 
