@@ -22,9 +22,12 @@ from turbustat.statistics import (Wavelet_Distance, MVC_Distance,
 def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                   statistics=None, multicore=False, vca_break=None,
                   vcs_break=None, dendro_params=None,
+                  dendro_periodic_boundaries=[True, True],
                   scf_boundaries=['continuous', 'continuous'],
                   noise_value=[-np.inf, -np.inf],
-                  dendro_saves=[None, None]):
+                  dendro_saves=[None, None],
+                  inertial_range=[[None] * 2, [None] * 2],
+                  spatial_range=[[None] * 2, [None] * 2]):
     '''
     Function to run all of the statistics on two datasets.
     Each statistic is run with set inputs. This function needs to be altered
@@ -70,13 +73,19 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                 statistic = "stat_moments"
             elif "Dendrogram" in statistic:
                 statistic = "Dendrogram"
+            elif "DeltaVariance_Centroid" in statistic:
+                statistic = "DeltaVariance_Centroid"
+            elif "DeltaVariance" in statistic and "Centroid" not in statistic:
+                statistic = "DeltaVariance"
             fiducial_models[statistic] = None
 
     if any("Wavelet" in s for s in statistics):
         wavelet_distance = \
             Wavelet_Distance(dataset1["moment0"],
                              dataset2["moment0"],
-                             fiducial_model=fiducial_models["Wavelet"])
+                             fiducial_model=fiducial_models["Wavelet"],
+                             xlow=spatial_range[0],
+                             xhigh=spatial_range[1])
         wavelet_distance.distance_metric()
         distances["Wavelet"] = wavelet_distance.distance
         if not multicore:
@@ -87,7 +96,9 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
     if any("MVC" in s for s in statistics):
         mvc_distance = \
             MVC_Distance(dataset1, dataset2,
-                         fiducial_model=fiducial_models["MVC"])
+                         fiducial_model=fiducial_models["MVC"],
+                         low_cut=inertial_range[0],
+                         high_cut=inertial_range[1])
         mvc_distance.distance_metric()
         distances["MVC"] = mvc_distance.distance
         if not multicore:
@@ -97,11 +108,11 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
 
     if any("PSpec" in s for s in statistics):
         pspec_distance = \
-          PSpec_Distance(dataset1["moment0"],
-                         dataset2["moment0"],
-                         weights1=dataset1["moment0_error"][0]**2.,
-                         weights2=dataset2["moment0_error"][0]**2.,
-                         fiducial_model=fiducial_models['PSpec'])
+            PSpec_Distance(dataset1["moment0"],
+                           dataset2["moment0"],
+                           fiducial_model=fiducial_models['PSpec'],
+                           low_cut=inertial_range[0],
+                           high_cut=inertial_range[1])
         pspec_distance.distance_metric()
         distances["PSpec"] = pspec_distance.distance
         if not multicore:
@@ -121,17 +132,43 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
 
         del bispec_distance
 
-    if any("DeltaVariance" in s for s in statistics):
+    if any("DeltaVariance_Slope" in s for s in statistics) or \
+       any("DeltaVariance_Curve" in s for s in statistics):
+
         delvar_distance = \
             DeltaVariance_Distance(dataset1["moment0"],
                                    dataset2["moment0"],
                                    weights1=dataset1["moment0_error"][0],
                                    weights2=dataset2["moment0_error"][0],
-                                   fiducial_model=fiducial_models["DeltaVariance"])
+                                   fiducial_model=fiducial_models["DeltaVariance"],
+                                   xlow=spatial_range[0],
+                                   xhigh=spatial_range[1])
         delvar_distance.distance_metric()
-        distances["DeltaVariance"] = delvar_distance.distance
+        distances["DeltaVariance_Curve"] = delvar_distance.curve_distance
+        distances["DeltaVariance_Slope"] = delvar_distance.slope_distance
         if not multicore:
             fiducial_models["DeltaVariance"] = copy(delvar_distance.delvar1)
+
+        del delvar_distance
+
+    if any("DeltaVariance_Centroid_Slope" in s for s in statistics) or \
+       any("DeltaVariance_Centroid_Curve" in s for s in statistics):
+        delvar_distance = \
+            DeltaVariance_Distance(dataset1["centroid"],
+                                   dataset2["centroid"],
+                                   weights1=dataset1["centroid_error"][0],
+                                   weights2=dataset2["centroid_error"][0],
+                                   fiducial_model=fiducial_models["DeltaVariance_Centroid"],
+                                   xlow=spatial_range[0],
+                                   xhigh=spatial_range[1])
+        delvar_distance.distance_metric()
+        distances["DeltaVariance_Centroid_Curve"] = \
+            delvar_distance.curve_distance
+        distances["DeltaVariance_Centroid_Slope"] = \
+            delvar_distance.slope_distance
+        if not multicore:
+            fiducial_models["DeltaVariance_Centroid"] = \
+                copy(delvar_distance.delvar1)
 
         del delvar_distance
 
@@ -166,7 +203,9 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
         vca_distance = VCA_Distance(dataset1["cube"],
                                     dataset2["cube"],
                                     breaks=vca_break,
-                                    fiducial_model=fiducial_models['VCA'])
+                                    fiducial_model=fiducial_models['VCA'],
+                                    low_cut=inertial_range[0],
+                                    high_cut=inertial_range[1])
         vca_distance.distance_metric()
         distances["VCA"] = vca_distance.distance
         if not multicore:
@@ -259,7 +298,8 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
         dendro_distance = \
             DendroDistance(input1, input2,
                            dendro_params=dendro_params,
-                           fiducial_model=fiducial_models['Dendrogram'])
+                           fiducial_model=fiducial_models['Dendrogram'],
+                           periodic_bounds=dendro_periodic_boundaries)
         dendro_distance.distance_metric()
 
         distances["Dendrogram_Hist"] = dendro_distance.histogram_distance
