@@ -49,9 +49,13 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
     # and including one makes the fitting for a few unstable
     vca_break = None
 
+    # Spectrally downsample the cubes for VCS (no info on smallest scales)
+    vcs_regrid = [True, True]
+
     distances = stats_wrapper(fiducial_dataset, testing_dataset,
                               statistics=statistics, multicore=True,
                               vca_break=vca_break, vcs_break=vcs_break,
+                              vcs_regrid=vcs_regrid,
                               dendro_params=dendro_params,
                               noise_value=noise_value,
                               inertial_range=inertial_range,

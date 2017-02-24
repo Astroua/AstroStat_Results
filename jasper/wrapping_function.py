@@ -194,7 +194,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
     if any("VCS" in s for s in statistics):
 
         # Regrid the cube to lower spectral resolution
-        if any(vcs_regrid)[0]:
+        if any(vcs_regrid):
             from spectral_cube import SpectralCube
             import astropy.io.fits as fits
 
@@ -226,7 +226,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                                     cube2,
                                     breaks=vcs_break,
                                     fiducial_model=fiducial_models['VCS'])
-        vcs_distance.distance_metric()
+        vcs_distance.distance_metric(verbose=True)
         distances["VCS"] = vcs_distance.distance
         distances["VCS_Small_Scale"] = vcs_distance.small_scale_distance
         distances["VCS_Large_Scale"] = vcs_distance.large_scale_distance
