@@ -27,7 +27,7 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
 
     # Only fit to the inertial range for power spectrum based statistics
     # Spat. PSpec., VCA, MVC
-    inertial_range = [[16. / 128.] * 2, [4.5 / 128.] * 2]
+    inertial_range = [[4.5 / 128.] * 2, [16. / 128.] * 2]
 
     # Range to fit to delta-variance and wavelets
     # 1/10 to 1/5 of the box avoids the obvious kernel effects on large-scales
