@@ -21,7 +21,8 @@ from turbustat.statistics import (Wavelet_Distance, MVC_Distance,
 
 def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                   statistics=None, multicore=False, vca_break=None,
-                  vcs_break=None, dendro_params=None,
+                  vcs_break=None, vcs_regrid=[False, False],
+                  dendro_params=None,
                   dendro_periodic_boundaries=[True, True],
                   scf_boundaries=['continuous', 'continuous'],
                   noise_value=[-np.inf, -np.inf],
@@ -47,6 +48,12 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
     multicore : bool, optional
         If the wrapper is being used in parallel, this disables
         returning model values for dataset1.
+    vcs_break : float, optional
+        Pass an initial guess for the location of the VCS break.
+    vcs_regrid : list of bools, optional
+        The simulated cubes lack information on the smallest spectral scales.
+        When enabled, the cube is downsampled by a factor of 5 spectrally
+        before running VCS.
     dendro_params : dict or list, optional
         Provides parameters to use when computing the initial dendrogram.
         If different parameters are required for each dataset, the
@@ -185,8 +192,38 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
         del genus_distance
 
     if any("VCS" in s for s in statistics):
-        vcs_distance = VCS_Distance(dataset1["cube"],
-                                    dataset2["cube"],
+
+        # Regrid the cube to lower spectral resolution
+        if any(vcs_regrid)[0]:
+            from spectral_cube import SpectralCube
+            import astropy.io.fits as fits
+
+            from jasper.analysis_funcs import spectral_regrid_cube
+
+            if vcs_regrid[0]:
+                cube1_hdu = fits.PrimaryHDU(dataset1["cube"][0],
+                                            header=dataset1["cube"][1])
+                cube1 = SpectralCube.read(cube1_hdu)
+
+                cube1 = spectral_regrid_cube(cube1, 100)
+            else:
+                cube1 = dataset1["cube"]
+
+            if vcs_regrid[1]:
+                cube2_hdu = fits.PrimaryHDU(dataset2["cube"][0],
+                                            header=dataset2["cube"][1])
+                cube2 = SpectralCube.read(cube2_hdu)
+
+                cube2 = spectral_regrid_cube(cube2, 100)
+            else:
+                cube2 = dataset2["cube"]
+
+        else:
+            cube1 = dataset1["cube"]
+            cube2 = dataset2["cube"]
+
+        vcs_distance = VCS_Distance(cube1,
+                                    cube2,
                                     breaks=vcs_break,
                                     fiducial_model=fiducial_models['VCS'])
         vcs_distance.distance_metric()

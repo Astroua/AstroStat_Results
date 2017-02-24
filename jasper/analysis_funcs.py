@@ -258,3 +258,14 @@ def _timestep_sort(d, timesteps, labels=None):
                     if labels is not None:
                         labels[face][lab].append(f[-16:-14])
                 d[face][lab] = good_files
+
+
+def spectral_regrid_cube(cube, num_chans):
+    '''
+    Spectrally interpolate a cube to a specified number of channels.
+    '''
+
+    new_spec = np.linspace(cube.spectral_extrema[0],
+                           cube.spectral_extrema[1], num_chans)
+
+    return cube.spectral_interpolate(new_spec)
