@@ -99,7 +99,7 @@ def run_all(fiducial, simulation_runs, statistics, savename,
             # print zip(repeat(fiducial), simulation_runs.values(),
             #           repeat(statistics))
             # print blah
-            distances = pool.map(single_input, zip(repeat(fiducial),
+            distances = map(single_input, zip(repeat(fiducial),
                                                    simulation_runs.values(),
                                                    repeat(statistics),
                                                    repeat(noise_added)))
@@ -151,7 +151,9 @@ if __name__ == "__main__":
     # Remove Tsallis
     statistics.remove("Tsallis")
 
-    statistics = ["SCF"]
+    # Add in delta-variance for centroids
+    statistics.append("DeltaVariance_Centroid_Curve")
+    statistics.append("DeltaVariance_Centroid_Slope")
 
     print "Statistics to run: %s" % (statistics)
     num_statistics = len(statistics)
