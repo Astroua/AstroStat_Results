@@ -43,7 +43,9 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
     dendro_params_fid = {"min_value": 2 * fid_noise, "min_npix": 10}
     dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 10}
     dendro_params = [dendro_params_fid, dendro_params_test]
-    dendro_boundaries = [True, True]
+
+    # We're only comparing sims here, so all spatial bounds are periodic.
+    periodic_bounds = [True, True]
 
     # The simulations (in set 8) are not benefiting from adding a break,
     # and including one makes the fitting for a few unstable
@@ -60,7 +62,7 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
                               noise_value=noise_value,
                               inertial_range=inertial_range,
                               spatial_range=spatial_range,
-                              dendro_periodic_boundaries=dendro_boundaries)
+                              periodic_bounds=periodic_bounds)
     return distances
 
 

@@ -23,8 +23,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                   statistics=None, multicore=False, vca_break=None,
                   vcs_break=None, vcs_regrid=[False, False],
                   dendro_params=None,
-                  dendro_periodic_boundaries=[True, True],
-                  scf_boundaries=['continuous', 'continuous'],
+                  periodic_bounds=[True, True],
                   noise_value=[-np.inf, -np.inf],
                   dendro_saves=[None, None],
                   inertial_range=[[None] * 2, [None] * 2],
@@ -58,9 +57,9 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
         Provides parameters to use when computing the initial dendrogram.
         If different parameters are required for each dataset, the
         the input should be a list containing the two dictionaries.
-    scf_wrapping : list
-        Set whether the boundaries should be handled as 'continuous' or not
-        ('cut').
+    periodic_bounds : list of bools
+        Set whether the boundaries should be handled as 'continuous' (True) or
+        not ('cut' or 'fill'; False).
     cleanup : bool, optional
         Delete distance classes after running.
     '''
@@ -142,6 +141,10 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
     if any("DeltaVariance_Slope" in s for s in statistics) or \
        any("DeltaVariance_Curve" in s for s in statistics):
 
+        # Check for how boundaries should be handled.
+        boundary1 = 'wrap' if periodic_bounds[0] else 'cut'
+        boundary2 = 'wrap' if periodic_bounds[1] else 'cut'
+
         delvar_distance = \
             DeltaVariance_Distance(dataset1["moment0"],
                                    dataset2["moment0"],
@@ -149,7 +152,9 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                                    weights2=dataset2["moment0_error"][0],
                                    fiducial_model=fiducial_models["DeltaVariance"],
                                    xlow=spatial_range[0],
-                                   xhigh=spatial_range[1])
+                                   xhigh=spatial_range[1],
+                                   boundary=[boundary1, boundary2])
+
         delvar_distance.distance_metric()
         distances["DeltaVariance_Curve"] = delvar_distance.curve_distance
         distances["DeltaVariance_Slope"] = delvar_distance.slope_distance
@@ -160,6 +165,11 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
 
     if any("DeltaVariance_Centroid_Slope" in s for s in statistics) or \
        any("DeltaVariance_Centroid_Curve" in s for s in statistics):
+
+        # Check for how boundaries should be handled.
+        boundary1 = 'wrap' if periodic_bounds[0] else 'cut'
+        boundary2 = 'wrap' if periodic_bounds[1] else 'cut'
+
         delvar_distance = \
             DeltaVariance_Distance(dataset1["centroid"],
                                    dataset2["centroid"],
@@ -167,7 +177,8 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                                    weights2=dataset2["centroid_error"][0],
                                    fiducial_model=fiducial_models["DeltaVariance_Centroid"],
                                    xlow=spatial_range[0],
-                                   xhigh=spatial_range[1])
+                                   xhigh=spatial_range[1],
+                                   boundary=[boundary1, boundary2])
         delvar_distance.distance_metric()
         distances["DeltaVariance_Centroid_Curve"] = \
             delvar_distance.curve_distance
@@ -226,7 +237,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                                     cube2,
                                     breaks=vcs_break,
                                     fiducial_model=fiducial_models['VCS'])
-        vcs_distance.distance_metric(verbose=True)
+        vcs_distance.distance_metric()
         distances["VCS"] = vcs_distance.distance
         distances["VCS_Small_Scale"] = vcs_distance.small_scale_distance
         distances["VCS_Large_Scale"] = vcs_distance.large_scale_distance
@@ -290,10 +301,14 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
         del pca_distance
 
     if any("SCF" in s for s in statistics):
+
+        boundary1 = "continuous" if periodic_bounds[0] else 'cut'
+        boundary2 = "continuous" if periodic_bounds[1] else 'cut'
+
         scf_distance = \
             SCF_Distance(dataset1["cube"],
                          dataset2["cube"],
-                         boundary=scf_boundaries,
+                         boundary=[boundary1, boundary2],
                          fiducial_model=fiducial_models['SCF'])
         scf_distance.distance_metric()
         distances["SCF"] = scf_distance.distance
@@ -336,7 +351,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
             DendroDistance(input1, input2,
                            dendro_params=dendro_params,
                            fiducial_model=fiducial_models['Dendrogram'],
-                           periodic_bounds=dendro_periodic_boundaries)
+                           periodic_bounds=periodic_bounds)
         dendro_distance.distance_metric()
 
         distances["Dendrogram_Hist"] = dendro_distance.histogram_distance
