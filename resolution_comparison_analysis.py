@@ -38,7 +38,7 @@ path_to_data = os.path.expanduser("~/MyRAID/Astrostat/SimSuite8/")
 moments_path = os.path.join(path_to_data, "moments/")
 
 # Only running on face 0
-faces = [2]
+faces = [0, 2]
 
 path_to_256 = os.path.expanduser("~/MyRAID/Astrostat/Fiducial_256/")
 
@@ -77,6 +77,7 @@ else:
 
 moments_256_path = os.path.join(path_to_256, "moments/")
 
+# This needs to be updated to grab the most recent version
 path_to_128dists = \
     os.path.expanduser("~/MyRAID/Astrostat/results/clean/clean_20160725101641046250")
 
@@ -117,6 +118,9 @@ if run_distances:
     statistics = copy(statistics_list)
     # statistics.remove("Dendrogram_Hist")
     # statistics.remove("Dendrogram_Num")
+    statistics.append("DeltaVariance_Centroid_Curve")
+    statistics.append("DeltaVariance_Centroid_Slope")
+
     statistics.remove("Tsallis")
 
     all_distances = {0: None, 1: None, 2: None}
@@ -146,22 +150,56 @@ if run_distances:
                                            moments_path=moments_path).to_dict()
 
             test_noise = 0.1 * np.nanpercentile(dataset2["cube"][0], 98)
+            noise_value = [fid_noise, test_noise]
 
             dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 10}
             dendro_params = [dendro_params_fid, dendro_params_test]
+
+            # Pass the inertial ranges and spatial ranges for fitting
+            # The 256 inertial range is k=5 to k~22
+            if dataset1['moment0'][0].shape[0] == 256:
+                low_range = [4.5 / 256., 4.5 / 128.]
+                high_range = [22. / 256., 16. / 128.]
+                low_spat_range = [11.] * 2
+                high_spat_range = [51., 27.]
+            else:
+                low_range = [4.5 / 128.] * 2
+                high_range = [16. / 128.] * 2
+                low_spat_range = [11.] * 2
+                high_spat_range = [27.] * 2
+
+            inertial_range = [low_range, high_range]
+            spatial_range = [low_spat_range, high_spat_range]
+
+            print("Inertial Range: {}".format(inertial_range))
+            print("Spatial Range: {}".format(spatial_range))
+
+            vcs_break = -0.8
+            vca_break = None
 
             if i == 0:
                 distances, fiducial_models = \
                     stats_wrapper(dataset1, dataset2,
                                   statistics=statistics,
-                                  dendro_params=dendro_params)
+                                  dendro_params=dendro_params,
+                                  inertial_range=inertial_range,
+                                  spatial_range=spatial_range,
+                                  vcs_break=vcs_break,
+                                  vca_break=vca_break,
+                                  periodic_bounds=[True, True])
                 all_fiducial_models = fiducial_models
             else:
                 distances = \
                     stats_wrapper(dataset1, dataset2,
                                   fiducial_models=all_fiducial_models,
+                                  multicore=True,  # don't need fiducial models
                                   statistics=statistics,
-                                  dendro_params=dendro_params)[0]
+                                  dendro_params=dendro_params,
+                                  inertial_range=inertial_range,
+                                  spatial_range=spatial_range,
+                                  vcs_break=vcs_break,
+                                  vca_break=vca_break,
+                                  periodic_bounds=[True, True])
             distances = [distances]
             distances_storage[:, i:i + 1] = \
                 sort_distances(statistics, distances).T
