@@ -200,6 +200,7 @@ def comparison_plot(path, num_fids=5, verbose=False,
                 enable_continue = False
             except KeyError:
                 warnings.warn("Could not find data for "+stat+" in "+key)
+                p.close()
                 enable_continue = True
                 break
 
@@ -234,7 +235,7 @@ def comparison_plot(path, num_fids=5, verbose=False,
                     out_path += "/"
                 save_name = out_path + save_name
             fig.savefig(save_name)
-            fig.clf()
+            p.close()
 
 
 def _plot_size(num, sharey=True):
