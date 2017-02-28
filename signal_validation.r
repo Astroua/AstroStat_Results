@@ -11,12 +11,15 @@ FidDes22 = read.csv('distances_2_2.csv', header = T)
 FidDes00$X = FidDes00$Fiducial = FidDes00$Designs = FidDes00$Plasma.Beta = FidDes00$k = FidDes00$Mach.Number = FidDes00$Solenoidal.Fraction = FidDes00$Virial.Parameter = NULL
 FidDes22$X = FidDes22$Fiducial = FidDes22$Designs = FidDes22$Plasma.Beta = FidDes22$k = FidDes22$Mach.Number = FidDes22$Solenoidal.Fraction = FidDes22$Virial.Parameter = NULL
 
-y_all = rbind(FidDes00,FidDes22)
+# Find the common stats between both files
+stats = intersect(colnames(FidDes00), colnames(FidDes22))
+
+y_all = rbind(FidDes00[,stats],FidDes22[,stats])
 
 fct = c(rep(c(1:32), 5), rep(33:64, 5))
 fct = as.factor(fct)
 
-nstats = length(names(y_all))
+nstats = length(stats)
 
 r2 = rep(0,nstats)
 for(k in 1:nstats)

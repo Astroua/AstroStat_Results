@@ -22,14 +22,20 @@ FidDes00$VCS_Break = FidDes22$VCS_Break = FidFid00$VCS_Break = FidFid22$VCS_Brea
 FidFid00$X = FidFid00$Fiducial.1 = FidFid00$Fiducial.2 = NULL
 FidFid22$X = FidFid22$Fiducial.1 = FidFid22$Fiducial.2 = NULL
 
-y = rbind(FidFid00, FidFid22, FidDes00, FidDes22)
+# Ensure we use a common set of statistics across all
+stats0 = intersect(colnames(FidDes00), colnames(FidFid00))
+stats2 = intersect(colnames(FidDes22), colnames(FidFid22))
+stats = intersect(stats0, stats2)
+
+y = rbind(FidFid00[,stats], FidFid22[,stats],
+		  FidDes00[,stats], FidDes22[,stats])
 x = c(rep(0, length(FidFid00[,1])),
 	  rep(0, length(FidFid22[,1])),
 	  rep(1, length(FidDes00[,1])),
 	  rep(1, length(FidDes22[,1])))
 
 nperm = as.numeric(args[2])
-nstats = length(FidDes00)
+nstats = length(stats)
 pVals = rep(0, nstats)
 
 for(i in 1:nperm)
@@ -50,7 +56,7 @@ for(i in 1:nperm)
 		print(paste(i, '/', nperm, sep=""))
 	}
 }
-names(pVals) = names(FidDes00)
+names(pVals) = stats
 pVals = pVals/nperm
 print(pVals)
 print(Sys.time() - startTime)

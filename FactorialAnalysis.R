@@ -19,7 +19,7 @@ des0=resFace0[,factors]
 
 colnames(des0)=c('sf','vp','k','m','pb')
 res0=resFace0[,!(names(resFace0)%in%c('Ind',factors,'Fiducial','Designs', 'X'))]
-stats=colnames(res0)
+stats0=colnames(res0)
 #des0=as.numeric(des0)
 #res0=as.numeric(res0)
 
@@ -27,11 +27,14 @@ stats=colnames(res0)
 des2=resFace2[,factors]
 colnames(des2)=c('sf','vp','k','m','pb')
 res2=resFace2[,!(names(resFace2)%in%c('Ind',factors,'Fiducial','Designs', 'X'))]
+stats2=colnames(res2)
 #des2=as.numeric(des2)
 #res2=as.numeric(res2)
 
+# We want to make sure both faces have the same statistics in them
+stats = intersect(stats0, stats2)
 
-data=cbind(Cube,fc,rbind(des0,des2),rbind(res0,res2))
+data=cbind(Cube,fc,rbind(des0,des2),rbind(res0[,stats], res2[,stats]))
 
 apply(data,2,mean)
 
