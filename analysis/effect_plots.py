@@ -71,6 +71,7 @@ def effect_plots(distance_file, effects_file, min_tvalue=2.0, statistics=None,
 
         # Ignore higher than 2nd order effects
         cut_to_2nd = int(len(params) + 0.5 * (len(params) * (len(params) - 1)))
+        # Enforce abs value
         response = response[:cut_to_2nd]
 
         # Find the most important effects 2nd order effects
@@ -79,6 +80,9 @@ def effect_plots(distance_file, effects_file, min_tvalue=2.0, statistics=None,
         imp_inters = response[len(params):].order(ascending=False)[:3]
 
         # Create colours based on the absolute values of the responses
+        small_val = 1.0e-14
+        response += small_val
+
         milagro = \
             colormap_milagro(np.log10(response.min()),
                              np.log10(response.max()),
