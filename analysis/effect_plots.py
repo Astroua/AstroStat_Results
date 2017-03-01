@@ -336,8 +336,17 @@ def make_coefplots(data, endog_formula="fc*m*k*pb*vp*sf",
             warnings.warn("{} is not in the given data.".format(stat))
             continue
 
-        coefplot("{0} ~ {1}".format(stat, endog_formula), data,
-                 min_tvalue=min_tvalue)
+        if np.isnan(data[stat]).any():
+            warnings.warn("{} contains NaNs and cannot be fit. No plot will "
+                          "be produced.".format(stat))
+            continue
+
+        try:
+            coefplot("{0} ~ {1}".format(stat, endog_formula), data,
+                     min_tvalue=min_tvalue)
+        except Exception:
+            warnings.warn("Fitting failed for {}.".format(stat))
+            continue
 
         if save:
             out_name = "full_factorial_{0}_coefplot.pdf".format(stat)
