@@ -119,7 +119,7 @@ def files_sorter(folder, fiducial_labels=np.arange(0, 5, 1),
                  design_labels=np.arange(0, 32, 1), timesteps='last',
                  faces=[0, 1, 2], suffix="fits", append_prefix=False,
                  fiducial_timesteps=None, design_identifier="Design",
-                 fiducial_identifier="Fiducial"):
+                 fiducial_identifier="Fiducial", verbose=True):
     '''
     If the entire simulation suite is in one directory, this function
     will spit out appropriate groupings.
@@ -149,6 +149,8 @@ def files_sorter(folder, fiducial_labels=np.arange(0, 5, 1),
     fiducial_identifier : str, optional
         Unique string that identifies a design simulated cube. Default is
         "Fiducial".
+    verbose : bool, optional
+        Print out some warnings and updates while running.
     '''
 
     # Get the files and remove any sub-directories.
@@ -192,7 +194,7 @@ def files_sorter(folder, fiducial_labels=np.arange(0, 5, 1),
                         else:
                             designs[face][lab].append(f)
 
-        if not identified:
+        if not identified and verbose:
             print("Could not find a category for " + f)
 
     # Sort and keep only the specified timesteps
