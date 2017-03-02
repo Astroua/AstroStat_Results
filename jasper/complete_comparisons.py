@@ -173,15 +173,6 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
     fiducial_dataset = load_and_reduce(fits1)
     testing_dataset = load_and_reduce(fits2)
 
-    # The simulations (in set 8) are not benefiting from adding a break in VCA,
-    # and including one makes the fitting for a few unstable
-    if add_noise:
-        vca_break = [None, -0.7]
-        vcs_break = -0.5
-    else:
-        vca_break = [None, -0.7]
-        vcs_break = -0.5
-
     noise_ngc1333 = 0.128
     noise_ophA = 0.252
     noise_ic348 = 0.143
@@ -193,6 +184,8 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
         low_spat1 = 11.
         high_spat1 = 27.
         fid_noise = 0.1 * np.nanpercentile(fiducial_dataset["cube"][0], 98)
+
+        vca_break1 = None
 
     else:
         if 'ic348' in fits1:
@@ -210,8 +203,11 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
         else:
             raise ValueError("fits1 is not an expected observational name")
 
-        low_freq1 = 2. / 128.
-        high_freq1 = 64. / 128.
+        low_freq1 = 4. / 256.
+        high_freq1 = 32. / 256.
+
+        # Frequency cut-offs exclude noise dominate scales
+        vca_break1 = None  # -0.7
 
     if "SimSuite" in fits2:
         low_freq2 = 4.5 / 128.
@@ -220,6 +216,8 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
         low_spat2 = 11.
         high_spat2 = 27.
         test_noise = 0.1 * np.nanpercentile(testing_dataset["cube"][0], 98)
+
+        vca_break2 = None
 
     else:
         if 'ic348' in fits2:
@@ -237,8 +235,16 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
         else:
             raise ValueError("fits1 is not an expected observational name")
 
-        low_freq2 = 2. / 128.
-        high_freq2 = 64. / 128.
+        low_freq2 = 4. / 256.
+        high_freq2 = 32. / 256.
+
+        # Frequency cut-offs exclude noise dominate scales
+        vca_break2 = None  # -0.7
+
+    # The simulations (in set 8) are not benefiting from adding a break in VCA,
+    # and including one makes the fitting for a few unstable
+    vca_break = [vca_break1, vca_break2]
+    vcs_break = -0.5
 
     noise_value = [fid_noise, test_noise]
 
@@ -376,7 +382,7 @@ if __name__ == "__main__":
                   "DeltaVariance_Centroid_Slope", "VCS_Break",
                   "VCS", "VCS_Large_Scale", "VCS_Small_Scale",
                   "VCA", "PCA", "Cramer",  # "SCF",
-                  "Dendrogram_Hist", "Dendrogram_Num"]
+                  "Dendrogram_Hist", "Dendrogram_Num", "MVC"]
 
     # statistics = ["SCF", "Genus", "DeltaVariance", "Skewness", "Kurtosis"]
     # statistics = ["DeltaVariance"]
