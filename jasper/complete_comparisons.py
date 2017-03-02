@@ -182,29 +182,90 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
         vca_break = [None, -0.7]
         vcs_break = -0.5
 
-    # Min values to compute the dendrogram at. This doesn't affect the
-    # COMPLETE dendrograms since they are loaded in.
-    fid_noise = 0.1 * np.nanpercentile(fiducial_dataset["cube"][0], 98)
-    test_noise = 0.1 * np.nanpercentile(testing_dataset["cube"][0], 98)
+    noise_ngc1333 = 0.128
+    noise_ophA = 0.252
+    noise_ic348 = 0.143
+
+    if "SimSuite8" in fits1:
+        low_freq1 = 4.5 / 128.
+        high_freq1 = 16. / 128.
+
+        low_spat1 = 11.
+        high_spat1 = 27.
+        fid_noise = 0.1 * np.nanpercentile(fiducial_dataset["cube"][0], 98)
+
+    else:
+        if 'ic348' in fits1:
+            fid_noise = noise_ic348
+            low_spat1 = 19.
+            high_spat1 = 53.
+        elif 'ngc1333' in fits1:
+            fid_noise = noise_ngc1333
+            low_spat1 = 14.
+            high_spat1 = 26.
+        elif "ophA" in fits1:
+            fid_noise = noise_ophA
+            low_spat1 = 11.5
+            high_spat1 = 38.
+        else:
+            raise ValueError("fits1 is not an expected observational name")
+
+        low_freq1 = 2. / 128.
+        high_freq1 = 64. / 128.
+
+    if "SimSuite8" in fits2:
+        low_freq2 = 4.5 / 128.
+        high_freq2 = 16. / 128.
+
+        low_spat2 = 11.
+        high_spat2 = 27.
+        test_noise = 0.1 * np.nanpercentile(testing_dataset["cube"][0], 98)
+
+    else:
+        if 'ic348' in fits1:
+            test_noise = noise_ic348
+            low_spat2 = 19.
+            high_spat2 = 53.
+        elif 'ngc1333' in fits1:
+            test_noise = noise_ngc1333
+            low_spat2 = 14.
+            high_spat2 = 26.
+        elif "ophA" in fits1:
+            test_noise = noise_ophA
+            low_spat2 = 11.5
+            high_spat2 = 38.
+        else:
+            raise ValueError("fits1 is not an expected observational name")
+
+        low_freq2 = 2. / 128.
+        high_freq2 = 64. / 128.
+
+    noise_value = [fid_noise, test_noise]
 
     dendro_params_fid = {"min_value": 2 * fid_noise, "min_npix": 10}
     dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 10}
     dendro_params = [dendro_params_fid, dendro_params_test]
 
+    inertial_range = [[low_freq1, low_freq2], [high_freq1, high_freq2]]
+    spatial_range = [[low_spat1, low_spat2], [high_spat1, high_spat2]]
+
     # Set the SCF boundary types.
     if "SimSuite" in fits1:
-        scf_boundaries = ["continuous", "cut"]
+        periodic_bounds = [True, False]
     elif "SimSuite" in fits2:
-        scf_boundaries = ["cut", "continuous"]
+        periodic_bounds = [False, True]
     else:
-        scf_boundaries = ["cut", "cut"]
+        periodic_bounds = [False, False]
 
     distances = stats_wrapper(fiducial_dataset, testing_dataset,
                               statistics=statistics, multicore=True,
                               vca_break=vca_break, vcs_break=vcs_break,
                               dendro_saves=dendro_saves,
                               dendro_params=dendro_params,
-                              scf_boundaries=scf_boundaries)
+                              periodic_bounds=periodic_bounds,
+                              noise_value=noise_value,
+                              inertial_range=inertial_range,
+                              spatial_range=spatial_range)
 
     return distances, fits1, fits2
 
@@ -310,12 +371,17 @@ if __name__ == "__main__":
     # statistics =  statistics_list
 
     # Set to run on the 'good' statistics
-    statistics = ["DeltaVariance", "VCS", "VCS_Density", "VCS_Velocity",
-                  "VCA", "PCA", "SCF", "Cramer", "VCS_Break", "Dendrogram_Hist",
-                  "Dendrogram_Num"]
+    statistics = ["DeltaVariance_Curve", "DeltaVariance_Slope",
+                  "DeltaVariance_Centroid_Curve",
+                  "DeltaVariance_Centroid_Slope", "VCS_Break",
+                  "VCS", "VCS_Large_Scale", "VCS_Small_Scale",
+                  "VCA", "PCA", "SCF", "Cramer",
+                  "Dendrogram_Hist", "Dendrogram_Num"]
 
     # statistics = ["SCF", "Genus", "DeltaVariance", "Skewness", "Kurtosis"]
     # statistics = ["DeltaVariance"]
+
+    # statistics = ["SCF"]
 
     print "Statistics to run: %s" % (statistics)
 
@@ -361,7 +427,8 @@ if __name__ == "__main__":
             sys.exit(0)
     elif multiproc == "noMPI":
         from multiprocessing import Pool
-        pool = Pool(processes=12)
+        # pool = Pool(processes=12)
+        pool = Pool(processes=4)
     else:
         pool = None
 
