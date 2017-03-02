@@ -186,7 +186,7 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
     noise_ophA = 0.252
     noise_ic348 = 0.143
 
-    if "SimSuite8" in fits1:
+    if "SimSuite" in fits1:
         low_freq1 = 4.5 / 128.
         high_freq1 = 16. / 128.
 
@@ -213,7 +213,7 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
         low_freq1 = 2. / 128.
         high_freq1 = 64. / 128.
 
-    if "SimSuite8" in fits2:
+    if "SimSuite" in fits2:
         low_freq2 = 4.5 / 128.
         high_freq2 = 16. / 128.
 
@@ -222,15 +222,15 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
         test_noise = 0.1 * np.nanpercentile(testing_dataset["cube"][0], 98)
 
     else:
-        if 'ic348' in fits1:
+        if 'ic348' in fits2:
             test_noise = noise_ic348
             low_spat2 = 19.
             high_spat2 = 53.
-        elif 'ngc1333' in fits1:
+        elif 'ngc1333' in fits2:
             test_noise = noise_ngc1333
             low_spat2 = 14.
             high_spat2 = 26.
-        elif "ophA" in fits1:
+        elif "ophA" in fits2:
             test_noise = noise_ophA
             low_spat2 = 11.5
             high_spat2 = 38.
@@ -375,7 +375,7 @@ if __name__ == "__main__":
                   "DeltaVariance_Centroid_Curve",
                   "DeltaVariance_Centroid_Slope", "VCS_Break",
                   "VCS", "VCS_Large_Scale", "VCS_Small_Scale",
-                  "VCA", "PCA", "SCF", "Cramer",
+                  "VCA", "PCA", "Cramer",  # "SCF",
                   "Dendrogram_Hist", "Dendrogram_Num"]
 
     # statistics = ["SCF", "Genus", "DeltaVariance", "Skewness", "Kurtosis"]
@@ -427,8 +427,8 @@ if __name__ == "__main__":
             sys.exit(0)
     elif multiproc == "noMPI":
         from multiprocessing import Pool
-        # pool = Pool(processes=12)
-        pool = Pool(processes=4)
+        pool = Pool(processes=12)
+        # pool = Pool(processes=4)
     else:
         pool = None
 
