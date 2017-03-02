@@ -142,8 +142,8 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
        any("DeltaVariance_Curve" in s for s in statistics):
 
         # Check for how boundaries should be handled.
-        boundary1 = 'wrap' if periodic_bounds[0] else 'cut'
-        boundary2 = 'wrap' if periodic_bounds[1] else 'cut'
+        boundary1 = 'wrap' if periodic_bounds[0] else 'fill'
+        boundary2 = 'wrap' if periodic_bounds[1] else 'fill'
 
         delvar_distance = \
             DeltaVariance_Distance(dataset1["moment0"],
@@ -167,8 +167,8 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
        any("DeltaVariance_Centroid_Curve" in s for s in statistics):
 
         # Check for how boundaries should be handled.
-        boundary1 = 'wrap' if periodic_bounds[0] else 'cut'
-        boundary2 = 'wrap' if periodic_bounds[1] else 'cut'
+        boundary1 = 'wrap' if periodic_bounds[0] else 'fill'
+        boundary2 = 'wrap' if periodic_bounds[1] else 'fill'
 
         delvar_distance = \
             DeltaVariance_Distance(dataset1["centroid"],
