@@ -277,3 +277,180 @@ def spectral_regrid_cube(cube, num_chans):
                            cube.spectral_extrema[1], num_chans)
 
     return cube.spectral_interpolate(new_spec)
+
+
+def round_up_to_odd(f):
+    return np.ceil(f) // 2 * 2 + 1
+
+
+def make_signal_mask(cube, smooth_chans=200. / 66., min_chan=7, peak_snr=8.,
+                     min_snr=5., edge_thresh=0.5):
+    '''
+    Create a robust signal mask by requiring spatial and spectral
+    connectivity.
+    '''
+
+    import astropy.units as u
+    from astropy.convolution import Box1DKernel
+    from signal_id import Noise
+    from scipy import ndimage as nd
+    from astropy.wcs.utils import proj_plane_pixel_scales
+    from astropy.utils.console import ProgressBar
+    import skimage.morphology as mo
+    import numpy as np
+    from radio_beam import Beam
+    from itertools import groupby, chain
+    from operator import itemgetter
+    import matplotlib.pyplot as p
+
+    pixscale = proj_plane_pixel_scales(cube.wcs)[0]
+
+    # # Want to smooth the mask edges
+    mask = cube.mask.include()
+
+    # Set smoothing parameters and # consecutive channels.
+    smooth_chans = int(round_up_to_odd(smooth_chans))
+
+    # consecutive channels to be real emission.
+    num_chans = min_chan
+
+    # Smooth the cube, then create a noise model
+    spec_kernel = Box1DKernel(smooth_chans)
+    smooth_cube = cube.spectral_smooth(spec_kernel)
+
+    noise = Noise(smooth_cube)
+    noise.estimate_noise(spectral_flat=True)
+    noise.get_scale_cube()
+
+    snr = noise.snr.copy()
+
+    snr[np.isnan(snr)] = 0.0
+
+    posns = np.where(snr.max(axis=0) >= min_snr)
+
+    bad_pos = np.where(snr.max(axis=0) < min_snr)
+    mask[:, bad_pos[0], bad_pos[1]] = False
+
+    # In case single spectra need to be inspected.
+    verbose = False
+
+    for i, j in ProgressBar(zip(*posns)):
+
+        # Look for all pixels above min_snr
+        good_posns = np.where(snr[:, i, j] > min_snr)[0]
+
+        # Reject if the total is less than connectivity requirement
+        if good_posns.size < num_chans:
+            mask[:, i, j] = False
+            continue
+
+        # Find connected pixels
+        sequences = []
+        for k, g in groupby(enumerate(good_posns), lambda (i, x): i - x):
+            sequences.append(map(itemgetter(1), g))
+
+        # Check length and peak. Require a minimum of 3 pixels above the noise
+        # to grow from.
+        sequences = [seq for seq in sequences if len(seq) >= 3 and
+                     np.nanmax(snr[:, i, j][seq]) >= peak_snr]
+
+        # Continue if no good sequences found
+        if len(sequences) == 0:
+            mask[:, i, j] = False
+            continue
+
+        # Now take each valid sequence and expand the edges until the smoothed
+        # spectrum approaches zero.
+        edges = [[seq[0], seq[-1]] for seq in sequences]
+        for n, edge in enumerate(edges):
+            # Lower side
+            if n == 0:
+                start_posn = edge[0]
+                stop_posn = 0
+            else:
+                start_posn = edge[0] - edges[n - 1][0]
+                stop_posn = edges[n - 1][0]
+
+            for pt in np.arange(start_posn, stop_posn, -1):
+                # if smoothed[pt] <= mad * edge_thresh:
+                if snr[:, i, j][pt] <= edge_thresh:
+                    break
+
+                sequences[n].insert(0, pt)
+
+            # Upper side
+            start_posn = edge[1]
+            if n == len(edges) - 1:
+                stop_posn = cube.shape[0]
+            else:
+                stop_posn = edges[n + 1][0]
+
+            for pt in np.arange(start_posn, stop_posn, 1):
+                # if smoothed[pt] <= mad * edge_thresh:
+                if snr[:, i, j][pt] <= edge_thresh:
+                    break
+
+                sequences[n].insert(0, pt)
+
+        # Final check for the min peak level and ensure all meet the
+        # spectral connectivity requirement
+        sequences = [seq for seq in sequences if len(seq) >= num_chans and
+                     np.nanmax(snr[:, i, j][seq]) >= peak_snr]
+
+        if len(sequences) == 0:
+            mask[:, i, j] = False
+            continue
+
+        bad_posns = \
+            list(set(np.arange(cube.shape[0])) - set(list(chain(*sequences))))
+
+        mask[:, i, j][bad_posns] = False
+
+        if verbose:
+            p.subplot(121)
+            p.plot(noise.snr[:, i, j])
+            p.vlines(np.where(mask[:, i, j])[0][-1], 0,
+                     np.nanmax(noise.snr[:, i, j]))
+            p.vlines(np.where(mask[:, i, j])[0][0], 0,
+                     np.nanmax(noise.snr[:, i, j]))
+            p.plot(noise.snr[:, i, j] * mask[:, i, j], 'bD')
+
+            p.subplot(122)
+            p.plot(cube[:, i, j], label='Cube')
+            p.plot(smooth_cube[:, i, j], label='Smooth Cube')
+            p.axvline(np.where(mask[:, i, j])[0][-1])
+            p.axvline(np.where(mask[:, i, j])[0][0])
+            p.plot(smooth_cube[:, i, j] * mask[:, i, j], 'bD')
+            p.draw()
+            raw_input("Next spectrum?")
+            p.clf()
+
+    # initial_mask = mask.copy()
+
+    # Now set the spatial connectivity requirements.
+
+    # The spatial pixel scales in the sim headers are SUPER small
+    # choosing this major axis gives an appropriately sized. 5x5 kernel
+    beam = Beam(major=1e-3 * u.arcmin)
+
+    kernel = beam.as_tophat_kernel(pixscale)
+    kernel_pix = (kernel.array > 0).sum()
+
+    for i in ProgressBar(mask.shape[0]):
+        mask[i] = nd.binary_opening(mask[i], kernel)
+        mask[i] = nd.binary_closing(mask[i], kernel)
+        mask[i] = mo.remove_small_objects(mask[i], min_size=kernel_pix,
+                                          connectivity=2)
+        mask[i] = mo.remove_small_holes(mask[i], min_size=kernel_pix,
+                                        connectivity=2)
+
+    # Each region must contain a point above the peak_snr
+    labels, num = nd.label(mask, np.ones((3, 3, 3)))
+    for n in range(1, num + 1):
+        pts = np.where(labels == n)
+        if np.nanmax(snr[pts]) < peak_snr:
+            mask[pts] = False
+
+    masked_cube = cube.with_mask(mask)
+
+    return masked_cube, noise.scale * masked_cube.unit
