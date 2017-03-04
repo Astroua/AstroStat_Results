@@ -283,8 +283,8 @@ def round_up_to_odd(f):
     return np.ceil(f) // 2 * 2 + 1
 
 
-def make_signal_mask(cube, smooth_chans=200. / 66., min_chan=7, peak_snr=8.,
-                     min_snr=5., edge_thresh=0.5):
+def make_signal_mask(cube, smooth_chans=200. / 66., min_chan=7, peak_snr=5.,
+                     min_snr=3.5, edge_thresh=1.5):
     '''
     Create a robust signal mask by requiring spatial and spectral
     connectivity.
@@ -306,7 +306,7 @@ def make_signal_mask(cube, smooth_chans=200. / 66., min_chan=7, peak_snr=8.,
     pixscale = proj_plane_pixel_scales(cube.wcs)[0]
 
     # # Want to smooth the mask edges
-    mask = cube.mask.include()
+    mask = cube.mask.include().copy()
 
     # Set smoothing parameters and # consecutive channels.
     smooth_chans = int(round_up_to_odd(smooth_chans))
@@ -436,6 +436,10 @@ def make_signal_mask(cube, smooth_chans=200. / 66., min_chan=7, peak_snr=8.,
     kernel = beam.as_tophat_kernel(pixscale)
     kernel_pix = (kernel.array > 0).sum()
 
+    # Avoid edge effects in closing by padding by 1 in each axis
+    mask = np.pad(mask, ((0, 0), (1, 1), (1, 1)), 'constant',
+                  constant_values=False)
+
     for i in ProgressBar(mask.shape[0]):
         mask[i] = nd.binary_opening(mask[i], kernel)
         mask[i] = nd.binary_closing(mask[i], kernel)
@@ -443,6 +447,9 @@ def make_signal_mask(cube, smooth_chans=200. / 66., min_chan=7, peak_snr=8.,
                                           connectivity=2)
         mask[i] = mo.remove_small_holes(mask[i], min_size=kernel_pix,
                                         connectivity=2)
+
+    # Remove padding
+    mask = mask[:, 1:-1, 1:-1]
 
     # Each region must contain a point above the peak_snr
     labels, num = nd.label(mask, np.ones((3, 3, 3)))
