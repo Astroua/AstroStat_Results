@@ -10,6 +10,7 @@ from multiprocessing import Pool
 
 # Regridding to a common linewidth
 from preprocessor import preprocessor
+from analysis_funcs import make_signal_mask
 
 '''
 Calculate the moments for all of the cubes.
@@ -56,15 +57,28 @@ def reduce_and_save(filename, add_noise=False, regrid_linewidth=False,
             sc = sc.with_mask(mask)
 
         if regrid_linewidth:
+            # Normalize the cubes to have the same linewidth
+            # channels_per_sigma=20 scales to the largest mean line width in
+            # SimSuite8 (~800 km/s; Design 22). So effectively everything is
+            # "smoothed" to have this line width
+            # Intensities are normalized by their 95% value.
             sc = preprocessor(sc, min_intensity=nsig * rms_noise,
-                              norm_intensity=False,
-                              norm_percentile=95)
+                              norm_intensity=True,
+                              norm_percentile=95,
+                              channels_per_sigma=20)
 
     else:
         sc = filename
 
+    # Run the same signal masking procedure that was used for the
+    # COMPLETE cubes
+    if add_noise:
+        # The default settings were set based on these cubes
+        sc = make_signal_mask(sc)[0]
+
     reduc = Mask_and_Moments(sc, scale=rms_noise)
-    reduc.make_mask(mask=reduc.cube > nsig * reduc.scale)
+    if not add_noise:
+        reduc.make_mask(mask=reduc.cube > nsig * reduc.scale)
 
     reduc.make_moments()
     reduc.make_moment_errors()
