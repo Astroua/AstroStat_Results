@@ -209,7 +209,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
             from spectral_cube import SpectralCube
             import astropy.io.fits as fits
 
-            from jasper.analysis_funcs import spectral_regrid_cube
+            from analysis_funcs import spectral_regrid_cube
 
             if vcs_regrid[0]:
                 cube1_hdu = fits.PrimaryHDU(dataset1["cube"][0],
