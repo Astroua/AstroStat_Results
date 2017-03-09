@@ -40,8 +40,8 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
         vcs_break = -0.8
         noise_value = [-np.inf, -np.inf]
 
-    dendro_params_fid = {"min_value": 2 * fid_noise, "min_npix": 10}
-    dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 10}
+    dendro_params_fid = {"min_value": 2 * fid_noise, "min_npix": 80}
+    dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 80}
     dendro_params = [dendro_params_fid, dendro_params_test]
 
     # We're only comparing sims here, so all spatial bounds are periodic.
@@ -284,7 +284,7 @@ def round_up_to_odd(f):
 
 
 def make_signal_mask(cube, smooth_chans=200. / 66., min_chan=7, peak_snr=5.,
-                     min_snr=3.5, edge_thresh=1.5):
+                     min_snr=3.5, edge_thresh=1.5, verbose=False):
     '''
     Create a robust signal mask by requiring spatial and spectral
     connectivity.
@@ -330,9 +330,6 @@ def make_signal_mask(cube, smooth_chans=200. / 66., min_chan=7, peak_snr=5.,
 
     bad_pos = np.where(snr.max(axis=0) < min_snr)
     mask[:, bad_pos[0], bad_pos[1]] = False
-
-    # In case single spectra need to be inspected.
-    verbose = False
 
     for i, j in ProgressBar(zip(*posns)):
 
@@ -408,19 +405,24 @@ def make_signal_mask(cube, smooth_chans=200. / 66., min_chan=7, peak_snr=5.,
 
         if verbose:
             p.subplot(121)
-            p.plot(noise.snr[:, i, j])
-            p.vlines(np.where(mask[:, i, j])[0][-1], 0,
+            p.plot(cube.spectral_axis.value, noise.snr[:, i, j])
+            min_val = cube.spectral_axis.value[np.where(mask[:, i, j])[0][-1]]
+            max_val = cube.spectral_axis.value[np.where(mask[:, i, j])[0][0]]
+            p.vlines(min_val, 0,
                      np.nanmax(noise.snr[:, i, j]))
-            p.vlines(np.where(mask[:, i, j])[0][0], 0,
+            p.vlines(max_val, 0,
                      np.nanmax(noise.snr[:, i, j]))
-            p.plot(noise.snr[:, i, j] * mask[:, i, j], 'bD')
+            p.plot(cube.spectral_axis.value,
+                   noise.snr[:, i, j] * mask[:, i, j], 'bD')
 
             p.subplot(122)
-            p.plot(cube[:, i, j], label='Cube')
-            p.plot(smooth_cube[:, i, j], label='Smooth Cube')
-            p.axvline(np.where(mask[:, i, j])[0][-1])
-            p.axvline(np.where(mask[:, i, j])[0][0])
-            p.plot(smooth_cube[:, i, j] * mask[:, i, j], 'bD')
+            p.plot(cube.spectral_axis.value, cube[:, i, j], label='Cube')
+            p.plot(cube.spectral_axis.value, smooth_cube[:, i, j],
+                   label='Smooth Cube')
+            p.axvline(min_val)
+            p.axvline(max_val)
+            p.plot(cube.spectral_axis.value,
+                   smooth_cube[:, i, j] * mask[:, i, j], 'bD')
             p.draw()
             raw_input("Next spectrum?")
             p.clf()
