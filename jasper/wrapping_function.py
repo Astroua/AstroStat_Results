@@ -277,7 +277,9 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
        any("Kurtosis" in s for s in statistics):
         moment_distance = \
             StatMoments_Distance(dataset1["moment0"],
-                                 dataset2["moment0"], 5,
+                                 dataset2["moment0"], radius=5,
+                                 weights1=dataset1["moment0_error"][0]**-2,
+                                 weights2=dataset2["moment0_error"][0]**-2,
                                  fiducial_model=fiducial_models['stat_moments'])
         moment_distance.distance_metric()
         distances["Skewness"] = moment_distance.skewness_distance
