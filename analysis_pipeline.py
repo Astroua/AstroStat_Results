@@ -45,6 +45,10 @@ tstep_choice = sys.argv[5]
 
 added_noise = True if sys.argv[6] == "T" else False
 
+statistics = statistics_list
+statistics.append("DeltaVariance_Centroid_Slope")
+statistics.append("DeltaVariance_Centroid_Curve")
+
 if tstep_choice == "mean":
     mode = 'mean'
     des_tsteps = None
@@ -170,7 +174,8 @@ if not os.path.exists(os.path.join(path, "Distance_Plots")):
 
 ta.comparison_plot(path, comparisons=good_comparison,
                    out_path=os.path.join(path, "Distance_Plots"),
-                   design_matrix=design_matrix)
+                   design_matrix=design_matrix,
+                   statistics=statistics)
 
 if not os.path.exists(os.path.join(path, "Distance_Plots_Paper")):
     os.mkdir(os.path.join(path, "Distance_Plots_Paper"))
@@ -180,7 +185,8 @@ if "0_0" in good_comparison and "2_2" in good_comparison:
     ta.comparison_plot(path, comparisons=["0_0", "2_2"],
                        out_path=os.path.join(path, "Distance_Plots_Paper"),
                        design_matrix=design_matrix,
-                       num_fids=5)
+                       num_fids=5,
+                       statistics=statistics)
 else:
     Warning("Need 0_0 and 2_2 comparisons to reproduce paper distance"
             " figures.")
@@ -237,19 +243,19 @@ sb.set_style('ticks')
 
 # Coef plots for all terms
 ta.make_coefplots("DataforFits.csv", save=True, out_path="Model_Plots",
-                  min_tvalue=min_tvalue)
+                  min_tvalue=min_tvalue, statistics=statistics)
 
 # Only show results of the good statistics
 if added_noise:
     good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
                   "Dendrogram_Num", "PCA", "PDF_Hellinger", "SCF", "VCA",
-                  "VCS_Large_Scale", "Skewness", "Kurtosis"]
+                  "VCS_Large_Scale", "Skewness", "Kurtosis", "Genus"]
 
 else:
     good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
                   "Dendrogram_Num", "PCA", "PDF_Hellinger", "SCF", "VCA",
                   "VCS", "VCS_Small_Scale", "VCS_Large_Scale", "Skewness",
-                  "Kurtosis"]
+                  "Kurtosis", "Genus"]
 
 ta.map_all_results("ResultsFactorial.csv", normed=False, max_order=None,
                    save_name="map_all_results.pdf",
