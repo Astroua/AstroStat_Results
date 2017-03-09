@@ -353,7 +353,8 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
             DendroDistance(input1, input2,
                            dendro_params=dendro_params,
                            fiducial_model=fiducial_models['Dendrogram'],
-                           periodic_bounds=periodic_bounds)
+                           periodic_bounds=periodic_bounds,
+                           min_features=60)
         dendro_distance.distance_metric()
 
         distances["Dendrogram_Hist"] = dendro_distance.histogram_distance
