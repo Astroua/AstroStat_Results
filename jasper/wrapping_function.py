@@ -21,7 +21,7 @@ from turbustat.statistics import (Wavelet_Distance, MVC_Distance,
 
 def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                   statistics=None, multicore=False, vca_break=None,
-                  vcs_break=None, vcs_regrid=[False, False],
+                  vcs_break=None, vcs_regrid=[None, None],
                   dendro_params=None,
                   periodic_bounds=[True, True],
                   noise_value=[-np.inf, -np.inf],
@@ -211,21 +211,21 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
 
             from analysis_funcs import spectral_regrid_cube
 
-            if vcs_regrid[0]:
+            if vcs_regrid[0] is not None:
                 cube1_hdu = fits.PrimaryHDU(dataset1["cube"][0],
                                             header=dataset1["cube"][1])
                 cube1 = SpectralCube.read(cube1_hdu)
 
-                cube1 = spectral_regrid_cube(cube1, 100)
+                cube1 = spectral_regrid_cube(cube1, int(vcs_regrid[0]))
             else:
                 cube1 = dataset1["cube"]
 
-            if vcs_regrid[1]:
+            if vcs_regrid[1] is not None:
                 cube2_hdu = fits.PrimaryHDU(dataset2["cube"][0],
                                             header=dataset2["cube"][1])
                 cube2 = SpectralCube.read(cube2_hdu)
 
-                cube2 = spectral_regrid_cube(cube2, 100)
+                cube2 = spectral_regrid_cube(cube2, int(vcs_regrid[1]))
             else:
                 cube2 = dataset2["cube"]
 

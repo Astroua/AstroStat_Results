@@ -52,7 +52,19 @@ def timestep_wrapper(fiducial_timestep, testing_timestep, statistics,
     vca_break = None
 
     # Spectrally downsample the cubes for VCS (no info on smallest scales)
-    vcs_regrid = [True, True]
+    # The hot fiducials need to be downgraded more b/c of their larger thermal
+    # linewidths, which is driving the range of useless small scales.
+    # 40 K vs 10 K, so factor of 2 in thermal line width
+    if "FiducialHot" in fiducial_timestep:
+        vcs_regrid1 = 50
+    else:
+        vcs_regrid1 = 100
+
+    if "FiducialHot" in testing_timestep:
+        vcs_regrid2 = 50
+    else:
+        vcs_regrid2 = 100
+    vcs_regrid = [vcs_regrid1, vcs_regrid2]
 
     distances = stats_wrapper(fiducial_dataset, testing_dataset,
                               statistics=statistics, multicore=True,

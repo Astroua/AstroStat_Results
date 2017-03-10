@@ -37,8 +37,10 @@ run_analysis = False
 path_to_data = os.path.expanduser("~/MyRAID/Astrostat/SimSuite8/")
 moments_path = os.path.join(path_to_data, "moments/")
 
+results_path = sys.argv[2]
+
 # Only running on face 0
-faces = [0, 2]
+faces = [0]  # [0, 2]
 
 path_to_256 = os.path.expanduser("~/MyRAID/Astrostat/Fiducial_256/")
 
@@ -77,18 +79,16 @@ else:
 
 moments_256_path = os.path.join(path_to_256, "moments/")
 
-# This needs to be updated to grab the most recent version
-path_to_128dists = \
-    os.path.expanduser("~/MyRAID/Astrostat/results/clean/clean_20160725101641046250")
-
 output_path = \
-    os.path.expanduser("~/MyRAID/Astrostat/results/resolution_comparison")
+    os.path.join(results_path, "resolution_comparison")
+if not os.path.exists(output_path):
+    os.mkdir(output_path)
 
 
 # Sort those from the 128 set, and keep only the first timestep
 fiducials, _, _ = \
     files_sorter(path_to_data, timesteps=1, faces=faces,
-                 append_prefix=True, design_labels=[])
+                 append_prefix=True, design_labels=[], verbose=False)
 
 # Now the 256 cubes
 fiducials_256, _, _ = \
@@ -152,7 +152,7 @@ if run_distances:
             test_noise = 0.1 * np.nanpercentile(dataset2["cube"][0], 98)
             noise_value = [fid_noise, test_noise]
 
-            dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 10}
+            dendro_params_test = {"min_value": 2 * test_noise, "min_npix": 80}
             dendro_params = [dendro_params_fid, dendro_params_test]
 
             # Pass the inertial ranges and spatial ranges for fitting
@@ -177,6 +177,10 @@ if run_distances:
             vcs_break = -0.8
             vca_break = None
 
+            # Downgrade the cubes to have 100 spectral channels. Small scales
+            # are dominated by thermal motion, and so act like noise
+            vcs_regrid = [100, 100]
+
             if i == 0:
                 distances, fiducial_models = \
                     stats_wrapper(dataset1, dataset2,
@@ -186,7 +190,8 @@ if run_distances:
                                   spatial_range=spatial_range,
                                   vcs_break=vcs_break,
                                   vca_break=vca_break,
-                                  periodic_bounds=[True, True])
+                                  periodic_bounds=[True, True],
+                                  vcs_regrid=vcs_regrid)
                 all_fiducial_models = fiducial_models
             else:
                 distances = \
@@ -199,7 +204,8 @@ if run_distances:
                                   spatial_range=spatial_range,
                                   vcs_break=vcs_break,
                                   vca_break=vca_break,
-                                  periodic_bounds=[True, True])
+                                  periodic_bounds=[True, True],
+                                  vcs_regrid=vcs_regrid)
             distances = [distances]
             distances_storage[:, i:i + 1] = \
                 sort_distances(statistics, distances).T
@@ -220,6 +226,15 @@ if run_distances:
         df.to_csv(output_name)
 
 if run_analysis:
+
+    # This grabs the most recent clean analysis
+    clean_path = os.path.join(results_path, "clean")
+    folds = [os.path.join(clean_path, fold) for fold in
+             os.listdir(clean_path) if "clean" in fold]
+    folds.sort()
+    print("Using the clean results from: {}".format(folds[-1]))
+    path_to_128dists = folds[-1]
+
 
     niters = 10000
 

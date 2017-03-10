@@ -260,10 +260,13 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
     # Set the SCF boundary types.
     if "SimSuite" in fits1:
         periodic_bounds = [True, False]
+        vcs_regrid = [100, None]
     elif "SimSuite" in fits2:
         periodic_bounds = [False, True]
+        vcs_regrid = [None, 100]
     else:
         periodic_bounds = [False, False]
+        vcs_regrid = [None, None]
 
     distances = stats_wrapper(fiducial_dataset, testing_dataset,
                               statistics=statistics, multicore=True,
@@ -273,7 +276,8 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
                               periodic_bounds=periodic_bounds,
                               noise_value=noise_value,
                               inertial_range=inertial_range,
-                              spatial_range=spatial_range)
+                              spatial_range=spatial_range,
+                              vcs_regrid=vcs_regrid)
 
     return distances, fits1, fits2
 
