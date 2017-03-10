@@ -4,8 +4,10 @@ from astropy.io.fits import getdata
 from pandas import DataFrame, read_csv
 from itertools import combinations, repeat
 from datetime import datetime
+import warnings
 
 from wrapping_function import stats_wrapper
+from analysis_funcs import files_sorter
 from turbustat.statistics import statistics_list
 
 '''
@@ -350,14 +352,16 @@ def sort_sim_files(sim_list, sim_labels=np.arange(0, 5),
                 key = label
                 break
         else:
-            raise TypeError("Cannot find appropriate label for: " + sim)
+            warnings.warn("Cannot find appropriate label for: " + sim)
+            continue
 
         for time in timestep_labels:
             if "_00" + str(time) + "_" in sim:
                 tstep = time
                 break
         else:
-            raise TypeError("Cannot find appropriate timestep for: " + sim)
+            warnings.warn("Cannot find appropriate timestep for: " + sim)
+            continue
 
         # Remove empty timesteps
         sim_dict[key] =\
