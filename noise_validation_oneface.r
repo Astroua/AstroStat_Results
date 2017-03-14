@@ -15,7 +15,6 @@ FidDes00$X = FidDes00$Fiducial = FidDes00$Designs = FidDes00$Plasma.Beta = FidDe
 FidDes00$VCS_Break = FidFid00$VCS_Break = FidDes00$Tsallis = FidFid00$Tsallis = NULL
 
 FidFid00$X = FidFid00$Fiducial.1 = FidFid00$Fiducial.2 = NULL
-FidFid22$X = FidFid22$Fiducial.1 = FidFid22$Fiducial.2 = NULL
 
 # Ensure we use a common set of statistics across all
 stats = intersect(colnames(FidDes00), colnames(FidFid00))

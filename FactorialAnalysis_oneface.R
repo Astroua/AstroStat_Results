@@ -7,6 +7,8 @@ library(MASS)
 
 resFace0=read.table('distances_0_0.csv',header=T,sep=',')
 
+resFace0$VCS_Break = resFace0$Tsallis= NULL
+
 ##Create Indicator for which Fiducial
 Cube=rep(c(1:5),each=32)
 
