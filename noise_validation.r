@@ -1,10 +1,9 @@
 
 # Read in cmd line args
-# Should contain 1) the path, 2) # of iterations
+# Should contain 1) # of iterations
 args = commandArgs(TRUE)
 
 startTime = Sys.time()
-# setwd(args[1])
 
 FidDes00 = read.csv('distances_0_0.csv', header = T)
 FidFid00 = read.csv('fiducials_0_0.csv', header = T)
@@ -16,8 +15,9 @@ FidFid22 = read.csv('fiducials_2_2.csv', header = T)
 FidDes00$X = FidDes00$Fiducial = FidDes00$Designs = FidDes00$Plasma.Beta = FidDes00$k = FidDes00$Mach.Number = FidDes00$Solenoidal.Fraction = FidDes00$Virial.Parameter = NULL
 FidDes22$X = FidDes22$Fiducial = FidDes22$Designs = FidDes22$Plasma.Beta = FidDes22$k = FidDes22$Mach.Number = FidDes22$Solenoidal.Fraction = FidDes22$Virial.Parameter = NULL
 
-# Ignore any results that include VCS_Break
+# Ignore any results that include VCS_Break or Tsallis
 FidDes00$VCS_Break = FidDes22$VCS_Break = FidFid00$VCS_Break = FidFid22$VCS_Break = NULL
+FidDes00$Tsallis = FidDes22$Tsallis = FidFid00$Tsallis = FidFid22$Tsallis = NULL
 
 FidFid00$X = FidFid00$Fiducial.1 = FidFid00$Fiducial.2 = NULL
 FidFid22$X = FidFid22$Fiducial.1 = FidFid22$Fiducial.2 = NULL
@@ -34,7 +34,7 @@ x = c(rep(0, length(FidFid00[,1])),
 	  rep(1, length(FidDes00[,1])),
 	  rep(1, length(FidDes22[,1])))
 
-nperm = as.numeric(args[2])
+nperm = as.numeric(args[1])
 nstats = length(stats)
 pVals = rep(0, nstats)
 

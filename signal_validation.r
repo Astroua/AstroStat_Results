@@ -1,15 +1,18 @@
 # Read in cmd line args
-# Should contain 1) the path, 2) # of iterations
+# Should contain 1) # of iterations
 args = commandArgs(TRUE)
 
 startTime = Sys.time()
-# setwd(args[1])
 
 FidDes00 = read.csv('distances_0_0.csv', header = T)
 FidDes22 = read.csv('distances_2_2.csv', header = T)
 
 FidDes00$X = FidDes00$Fiducial = FidDes00$Designs = FidDes00$Plasma.Beta = FidDes00$k = FidDes00$Mach.Number = FidDes00$Solenoidal.Fraction = FidDes00$Virial.Parameter = NULL
 FidDes22$X = FidDes22$Fiducial = FidDes22$Designs = FidDes22$Plasma.Beta = FidDes22$k = FidDes22$Mach.Number = FidDes22$Solenoidal.Fraction = FidDes22$Virial.Parameter = NULL
+
+# Ignore any results that include VCS_Break or Tsallis
+FidDes00$VCS_Break = FidDes22$VCS_Break = NULL
+FidDes00$Tsallis = FidDes22$Tsallis = NULL
 
 # Find the common stats between both files
 stats = intersect(colnames(FidDes00), colnames(FidDes22))
@@ -33,7 +36,7 @@ sts=names(y_all)
 
 y_all = y_all[,sr2]
 
-nperm = as.numeric(args[2])
+nperm = as.numeric(args[1])
 s = nstats
 pfv = matrix(0,nperm,s)
 p2 = rep(0,nstats)
