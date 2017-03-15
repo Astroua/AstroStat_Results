@@ -45,6 +45,10 @@ tstep_choice = sys.argv[5]
 
 added_noise = True if sys.argv[6] == "T" else False
 
+faces = sys.argv[7].split()
+
+faces = ["{0}_{0}".format(face) for face in faces]
+
 statistics = statistics_list
 statistics.append("DeltaVariance_Centroid_Slope")
 statistics.append("DeltaVariance_Centroid_Curve")
@@ -88,69 +92,19 @@ good_comparison = []
 
 print("Converting to combined csv files.")
 
-try:
-    ta.convert_format(hdf5_path, 0, face2=0, design=design_matrix,
-                      mode=mode, tsteps=des_tsteps)
-    shutil.move(os.path.join(hdf5_path, "distances_0_0.csv"), path)
-    good_comparison.append("0_0")
-except StandardError as err:
-    print err
-try:
-    ta.convert_format(hdf5_path, 0, face2=1, design=design_matrix,
-                      mode=mode, tsteps=des_tsteps)
-    shutil.move(os.path.join(hdf5_path, "distances_0_1.csv"), path)
-    good_comparison.append("0_1")
-except StandardError as err:
-    print err
-try:
-    ta.convert_format(hdf5_path, 0, face2=2, design=design_matrix,
-                      mode=mode, tsteps=des_tsteps)
-    shutil.move(os.path.join(hdf5_path, "distances_0_2.csv"), path)
-    good_comparison.append("0_2")
-except StandardError as err:
-    print err
-try:
-    ta.convert_format(hdf5_path, 1, face2=0, design=design_matrix,
-                      mode=mode, tsteps=des_tsteps)
-    shutil.move(os.path.join(hdf5_path, "distances_1_0.csv"), path)
-    good_comparison.append("1_0")
-except StandardError as err:
-    print err
-try:
-    ta.convert_format(hdf5_path, 1, face2=1, design=design_matrix,
-                      mode=mode, tsteps=des_tsteps)
-    shutil.move(os.path.join(hdf5_path, "distances_1_1.csv"), path)
-    good_comparison.append("1_1")
-except StandardError as err:
-    print err
-try:
-    ta.convert_format(hdf5_path, 1, face2=2, design=design_matrix,
-                      mode=mode, tsteps=des_tsteps)
-    shutil.move(os.path.join(hdf5_path, "distances_1_2.csv"), path)
-    good_comparison.append("1_2")
-except StandardError as err:
-    print err
-try:
-    ta.convert_format(hdf5_path, 2, face2=0, design=design_matrix,
-                      mode=mode, tsteps=des_tsteps)
-    shutil.move(os.path.join(hdf5_path, "distances_2_0.csv"), path)
-    good_comparison.append("2_0")
-except StandardError as err:
-    print err
-try:
-    ta.convert_format(hdf5_path, 2, face2=1, design=design_matrix,
-                      mode=mode, tsteps=des_tsteps)
-    shutil.move(os.path.join(hdf5_path, "distances_2_1.csv"), path)
-    good_comparison.append("2_1")
-except StandardError as err:
-    print err
-try:
-    ta.convert_format(hdf5_path, 2, face2=2, design=design_matrix,
-                      mode=mode, tsteps=des_tsteps)
-    shutil.move(os.path.join(hdf5_path, "distances_2_2.csv"), path)
-    good_comparison.append("2_2")
-except StandardError as err:
-    print err
+for face1 in [0, 1, 2]:
+    for face2 in [0, 1, 2]:
+        try:
+            ta.convert_format(hdf5_path, face1, face2=face2,
+                              design=design_matrix,
+                              mode=mode, tsteps=des_tsteps)
+            shutil.move(os.path.join(hdf5_path,
+                                     "distances_{0}_{1}.csv".format(face1,
+                                                                    face2)),
+                        path)
+            good_comparison.append("{0}_{1}".format(face1, face2))
+        except StandardError as err:
+            print err
 
 # Next convert the fiducial comparisons
 
@@ -169,10 +123,17 @@ for fil in os.listdir(hdf5_path):
 
 print("Making distance plots.")
 
+# Check that the requested face files were found
+for face in faces:
+    if face in good_comparison:
+        continue
+    raise ValueError("Face {0} not found. Those found are:"
+                     " {1}".format(face, good_comparison))
+
 if not os.path.exists(os.path.join(path, "Distance_Plots")):
     os.mkdir(os.path.join(path, "Distance_Plots"))
 
-ta.comparison_plot(path, comparisons=good_comparison,
+ta.comparison_plot(path, comparisons=faces,
                    out_path=os.path.join(path, "Distance_Plots"),
                    design_matrix=design_matrix,
                    statistics=statistics)
@@ -180,52 +141,54 @@ ta.comparison_plot(path, comparisons=good_comparison,
 if not os.path.exists(os.path.join(path, "Distance_Plots_Paper")):
     os.mkdir(os.path.join(path, "Distance_Plots_Paper"))
 
-if "0_0" in good_comparison and "2_2" in good_comparison:
-
-    ta.comparison_plot(path, comparisons=["0_0", "2_2"],
-                       out_path=os.path.join(path, "Distance_Plots_Paper"),
-                       design_matrix=design_matrix,
-                       num_fids=5,
-                       statistics=statistics)
-else:
-    Warning("Need 0_0 and 2_2 comparisons to reproduce paper distance"
-            " figures.")
+ta.comparison_plot(path, comparisons=faces,
+                   out_path=os.path.join(path, "Distance_Plots_Paper"),
+                   design_matrix=design_matrix,
+                   num_fids=5,
+                   statistics=statistics)
 
 # Run the R-script to fit the data to the model
 
-# Must have 0_0 and 2_2 comparisons to run
-
-if "0_0" not in good_comparison and "2_2" not in good_comparison:
-    raise StandardError("Model fitting requires 0_0 and 2_2 to be available.")
-
 os.chdir(path)
+
+# This isn't robust. Assumes that when only 1 face is used, it is the 0 0
+# comparison
+if len(faces) == 1:
+    print("Only found one face: {}".format(faces))
+    factorial_script = "FactorialAnalysis_oneface.R"
+    noise_script = "noise_validation_oneface.r"
+    signal_script = "signal_validation_oneface.r"
+    params = ["pb", "m", "k", "sf", "vp"]
+else:
+    print("Found multiple faces: {}".format(faces))
+    factorial_script = "FactorialAnalysis.R"
+    noise_script = "noise_validation.r"
+    signal_script = "signal_validation.r"
+    params = ["fc", "pb", "m", "k", "sf", "vp"]
+
 
 print("Fitting model of given design.")
 
 subprocess.call(['Rscript',
-                 os.path.join(scripts_path, "FactorialAnalysis.R")])
+                 os.path.join(scripts_path, factorial_script)])
 
 # This should create two output tables of the whole dataset.
 
 # Now run the metric validation
 
-print "Running metric validation."
+print("Running metric validation.")
 
 subprocess.call(['Rscript',
-                 os.path.join(scripts_path, "noise_validation.r"),
-                 path, "10000"])
+                 os.path.join(scripts_path, noise_script),
+                 "10000"])
 
 subprocess.call(['Rscript',
-                 os.path.join(scripts_path, "signal_validation.r"),
-                 path, "10000"])
+                 os.path.join(scripts_path, signal_script),
+                 "10000"])
 
 # Finally, create the model plots
 
 print("Creating model plots.")
-
-# Remove PDF_AD from the list
-
-# statistics_list.remove("PDF_AD")
 
 if not os.path.exists(os.path.join(path, "Model_Plots")):
     os.mkdir(os.path.join(path, "Model_Plots"))
@@ -235,7 +198,8 @@ if not os.path.exists(os.path.join(path, "Model_Plots")):
 min_tvalue = 3.46  # 99.9%
 
 ta.effect_plots("DataforFits.csv", "ResultsFactorial.csv", save=True,
-                out_path='Model_Plots', min_tvalue=min_tvalue)
+                out_path='Model_Plots', min_tvalue=min_tvalue,
+                params=params)
 
 import seaborn as sb
 sb.set_context("poster", font_scale=1.2)
@@ -243,7 +207,8 @@ sb.set_style('ticks')
 
 # Coef plots for all terms
 ta.make_coefplots("DataforFits.csv", save=True, out_path="Model_Plots",
-                  min_tvalue=min_tvalue, statistics=statistics)
+                  min_tvalue=min_tvalue, statistics=statistics,
+                  endog_formula="*".join(params))
 
 # Only show results of the good statistics
 if added_noise:
