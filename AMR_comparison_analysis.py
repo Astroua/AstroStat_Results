@@ -11,6 +11,7 @@ from astropy.utils.console import ProgressBar
 import pandas as pd
 from copy import copy
 import statsmodels.api as sm
+import statsmodels.formula.api as smf
 
 from turbustat.data_reduction import Mask_and_Moments
 from turbustat.statistics import statistics_list
@@ -36,30 +37,30 @@ if not os.path.exists(save_path):
 
 faces = [0] # [0, 2]
 
-fiducials, _, _ = \
-    files_sorter(path_to_data, timesteps='last', faces=faces,
-                 append_prefix=True, design_labels=[], verbose=False)
+# fiducials, _, _ = \
+#     files_sorter(path_to_data, timesteps='last', faces=faces,
+#                  append_prefix=True, design_labels=[], verbose=False)
 
-# Now the AMR cubes
-fiducials_amr, _, _ = \
-    files_sorter(path_to_amrdata, append_prefix=True, design_labels=[],
-                 faces=faces, timesteps='last', verbose=False)
+# # Now the AMR cubes
+# fiducials_amr, _, _ = \
+#     files_sorter(path_to_amrdata, append_prefix=True, design_labels=[],
+#                  faces=faces, timesteps='last', verbose=False)
 
-# If the AMR moments path doesn't exist, make the moment arrays and save.
-if not os.path.exists(amrmoments_path):
+# # If the AMR moments path doesn't exist, make the moment arrays and save.
+# if not os.path.exists(amrmoments_path):
 
-    os.mkdir(amrmoments_path)
+#     os.mkdir(amrmoments_path)
 
-    for face in faces:
-        for fid in fiducials_amr[face]:
-            fid_name = fiducials_amr[face][fid]
-            mask_mom = Mask_and_Moments(fid_name,
-                                        scale=0.001 * u.K)
-            mask_mom.make_moments()
-            mask_mom.make_moment_errors()
+#     for face in faces:
+#         for fid in fiducials_amr[face]:
+#             fid_name = fiducials_amr[face][fid]
+#             mask_mom = Mask_and_Moments(fid_name,
+#                                         scale=0.001 * u.K)
+#             mask_mom.make_moments()
+#             mask_mom.make_moment_errors()
 
-            save_name = os.path.splitext(os.path.basename(fid_name))[0]
-            mask_mom.to_fits(os.path.join(amrmoments_path, save_name))
+#             save_name = os.path.splitext(os.path.basename(fid_name))[0]
+#             mask_mom.to_fits(os.path.join(amrmoments_path, save_name))
 
 
 # Now run the distances AMR vs. none.
@@ -70,55 +71,55 @@ statistics.append("DeltaVariance_Centroid_Slope")
 print "Statistics to run: %s" % (statistics)
 num_statistics = len(statistics)
 
-for face in faces:
-    for fid in ProgressBar([3, 4]):
+# for face in faces:
+#     for fid in ProgressBar([3, 4]):
 
-        distances = np.zeros((len(statistics),
-                              len(fiducials_amr[face].keys())))
+#         distances = np.zeros((len(statistics),
+#                               len(fiducials_amr[face].keys())))
 
-        fid_name = fiducials[face][fid]
+#         fid_name = fiducials[face][fid]
 
-        for i, amr_fid in enumerate(fiducials_amr[face].keys()):
-            fid_amr_name = fiducials_amr[face][amr_fid]
+#         for i, amr_fid in enumerate(fiducials_amr[face].keys()):
+#             fid_amr_name = fiducials_amr[face][amr_fid]
 
-            out = timestep_wrapper(fid_name, fid_amr_name, statistics, False)
+#             out = timestep_wrapper(fid_name, fid_amr_name, statistics, False)
 
-            out = [out]
-            distances[:, i] = sort_distances(statistics, out).T.squeeze()
+#             out = [out]
+#             distances[:, i] = sort_distances(statistics, out).T.squeeze()
 
-        df = pd.DataFrame(distances, index=statistics).T
+#         df = pd.DataFrame(distances, index=statistics).T
 
-        # Save each fiducial as a csv file
-        save_name = "SimSuite8_fiducial{0}_amr_comparison_" \
-            "face_{1}.csv".format(fid, face)
-        df.to_csv(os.path.join(save_path, save_name))
+#         # Save each fiducial as a csv file
+#         save_name = "SimSuite8_fiducial{0}_amr_comparison_" \
+#             "face_{1}.csv".format(fid, face)
+#         df.to_csv(os.path.join(save_path, save_name))
 
-    # And the distances between the AMR fiducials.
+#     # And the distances between the AMR fiducials.
 
-    dists = {}
+#     dists = {}
 
-    for fid in ProgressBar(fiducials_amr[face].keys()):
+#     for fid in ProgressBar(fiducials_amr[face].keys()):
 
-        fid_name = fiducials_amr[face][fid]
+#         fid_name = fiducials_amr[face][fid]
 
-        for i, amr_fid in enumerate(fiducials_amr[face].keys()):
-            if amr_fid == fid:
-                continue
+#         for i, amr_fid in enumerate(fiducials_amr[face].keys()):
+#             if amr_fid == fid:
+#                 continue
 
-            fid_amr_name = fiducials_amr[face][amr_fid]
+#             fid_amr_name = fiducials_amr[face][amr_fid]
 
-            out = timestep_wrapper(fid_name, fid_amr_name, statistics, False)
+#             out = timestep_wrapper(fid_name, fid_amr_name, statistics, False)
 
-            out = [out]
-            dists["{0}_{1}".format(fid, amr_fid)] = \
-                sort_distances(statistics, out).T.squeeze()
+#             out = [out]
+#             dists["{0}_{1}".format(fid, amr_fid)] = \
+#                 sort_distances(statistics, out).T.squeeze()
 
-    df_fids = pd.DataFrame(dists, index=statistics)
+#     df_fids = pd.DataFrame(dists, index=statistics).T
 
-    # Save each fiducial as a csv file
-    save_name = "SimSuite8_fiducial_to_fiducial_amr_comparison_" \
-        "face_{0}.csv".format(face)
-    df_fids.to_csv(os.path.join(save_path, save_name))
+#     # Save each fiducial as a csv file
+#     save_name = "SimSuite8_fiducial_to_fiducial_amr_comparison_" \
+#         "face_{0}.csv".format(face)
+#     df_fids.to_csv(os.path.join(save_path, save_name))
 
 # Now run the analysis.
 
@@ -158,34 +159,52 @@ for face in faces:
         else:
             amr_fid = pd.concat([amr_fid, df])
 
-    pvals = dict.fromkeys(amr_amr.columns)
+    # Signficance of difference between AMR to Fid and Fid to Fid
+    pvals_amr_to_fid = dict.fromkeys(amr_amr.columns)
+    # Signficance of difference between AMR to AMR and Fid to Fid
+    # So does the AMR just plain have more scatter associated?
+    pvals_fid_to_fid = dict.fromkeys(amr_amr.columns)
 
-    for stat in ProgressBar(pvals.keys()):
+    for stat in ProgressBar(pvals_amr_to_fid.keys()):
 
         # Stack all distances together w/ a dummy variable
         # QUESTION: Treat the testing against the same as one group?
-        dists = np.hstack([amr_fid[stat], amr_amr[stat], fid_fid[stat]])
-        x = np.hstack([np.ones_like(amr_fid[stat]),
-                       np.zeros_like(amr_amr[stat]),
-                       np.ones_like(fid_fid[stat])])
-                       # 2 * np.ones_like(fid_fid[stat])])
+        dists = np.hstack([amr_fid[stat], amr_amr[stat],
+                           fid_fid[stat]]).astype(float)
+        x = np.hstack([2 * np.ones_like(amr_fid[stat], dtype=np.float),
+                       np.ones_like(amr_amr[stat], dtype=np.float),
+                       np.zeros_like(fid_fid[stat], dtype=np.float)])
 
-        x = sm.add_constant(x)
+        stacked = np.hstack([dists[:, np.newaxis], x[:, np.newaxis]])
+        df_dists = pd.DataFrame(stacked, columns=['Dists', 'Categ'])
 
-        model = sm.OLS(dists, x)
+        model = smf.ols("Dists ~ C(Categ)", data=df_dists)
         results = model.fit()
-        mean_diff = results.params[1]
+        mean_diff_amrfid = results.params[1]
+        mean_diff_fidfid = results.params[2]
 
         # Now permute and re-test
-        counter = 0
+        counter_amrfid = 0
+        counter_fidfid = 0
         for _ in xrange(niters):
             perm_dists = np.random.permutation(dists)
-            perm_results = sm.OLS(perm_dists, x).fit()
-            if perm_results.params[1] > mean_diff:
-                counter += 1
-        pvals[stat] = float(counter) / float(niters)
+            stacked_perm = np.hstack([perm_dists[:, np.newaxis],
+                                      x[:, np.newaxis]])
+            df_perm_dists = \
+                pd.DataFrame(stacked_perm, columns=['Dists', 'Categ'])
 
-    pval_df = pd.DataFrame(pvals, index=[0])
+            perm_model = smf.ols("Dists ~ C(Categ)", data=df_perm_dists)
+            perm_results = perm_model.fit()
+            if perm_results.params[1] > mean_diff_amrfid:
+                counter_amrfid += 1
+            if perm_results.params[2] > mean_diff_fidfid:
+                counter_fidfid += 1
+
+        pvals_amr_to_fid[stat] = float(counter_amrfid) / float(niters)
+        pvals_fid_to_fid[stat] = float(counter_fidfid) / float(niters)
+
+    pval_df = pd.DataFrame({"pvals AMR to Fid": pvals_amr_to_fid,
+                            "pvals Fid to Fid": pvals_fid_to_fid})
 
     output_name = os.path.join(save_path,
                                "pvals_face_{}.csv".format(face))
