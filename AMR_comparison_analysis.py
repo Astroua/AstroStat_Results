@@ -37,30 +37,30 @@ if not os.path.exists(save_path):
 
 faces = [0] # [0, 2]
 
-# fiducials, _, _ = \
-#     files_sorter(path_to_data, timesteps='last', faces=faces,
-#                  append_prefix=True, design_labels=[], verbose=False)
+fiducials, _, _ = \
+    files_sorter(path_to_data, timesteps='last', faces=faces,
+                 append_prefix=True, design_labels=[], verbose=False)
 
-# # Now the AMR cubes
-# fiducials_amr, _, _ = \
-#     files_sorter(path_to_amrdata, append_prefix=True, design_labels=[],
-#                  faces=faces, timesteps='last', verbose=False)
+# Now the AMR cubes
+fiducials_amr, _, _ = \
+    files_sorter(path_to_amrdata, append_prefix=True, design_labels=[],
+                 faces=faces, timesteps='last', verbose=False)
 
-# # If the AMR moments path doesn't exist, make the moment arrays and save.
-# if not os.path.exists(amrmoments_path):
+# If the AMR moments path doesn't exist, make the moment arrays and save.
+if not os.path.exists(amrmoments_path):
 
-#     os.mkdir(amrmoments_path)
+    os.mkdir(amrmoments_path)
 
-#     for face in faces:
-#         for fid in fiducials_amr[face]:
-#             fid_name = fiducials_amr[face][fid]
-#             mask_mom = Mask_and_Moments(fid_name,
-#                                         scale=0.001 * u.K)
-#             mask_mom.make_moments()
-#             mask_mom.make_moment_errors()
+    for face in faces:
+        for fid in fiducials_amr[face]:
+            fid_name = fiducials_amr[face][fid]
+            mask_mom = Mask_and_Moments(fid_name,
+                                        scale=0.001 * u.K)
+            mask_mom.make_moments()
+            mask_mom.make_moment_errors()
 
-#             save_name = os.path.splitext(os.path.basename(fid_name))[0]
-#             mask_mom.to_fits(os.path.join(amrmoments_path, save_name))
+            save_name = os.path.splitext(os.path.basename(fid_name))[0]
+            mask_mom.to_fits(os.path.join(amrmoments_path, save_name))
 
 
 # Now run the distances AMR vs. none.
@@ -71,55 +71,55 @@ statistics.append("DeltaVariance_Centroid_Slope")
 print "Statistics to run: %s" % (statistics)
 num_statistics = len(statistics)
 
-# for face in faces:
-#     for fid in ProgressBar([3, 4]):
+for face in faces:
+    for fid in ProgressBar([3, 4]):
 
-#         distances = np.zeros((len(statistics),
-#                               len(fiducials_amr[face].keys())))
+        distances = np.zeros((len(statistics),
+                              len(fiducials_amr[face].keys())))
 
-#         fid_name = fiducials[face][fid]
+        fid_name = fiducials[face][fid]
 
-#         for i, amr_fid in enumerate(fiducials_amr[face].keys()):
-#             fid_amr_name = fiducials_amr[face][amr_fid]
+        for i, amr_fid in enumerate(fiducials_amr[face].keys()):
+            fid_amr_name = fiducials_amr[face][amr_fid]
 
-#             out = timestep_wrapper(fid_name, fid_amr_name, statistics, False)
+            out = timestep_wrapper(fid_name, fid_amr_name, statistics, False)
 
-#             out = [out]
-#             distances[:, i] = sort_distances(statistics, out).T.squeeze()
+            out = [out]
+            distances[:, i] = sort_distances(statistics, out).T.squeeze()
 
-#         df = pd.DataFrame(distances, index=statistics).T
+        df = pd.DataFrame(distances, index=statistics).T
 
-#         # Save each fiducial as a csv file
-#         save_name = "SimSuite8_fiducial{0}_amr_comparison_" \
-#             "face_{1}.csv".format(fid, face)
-#         df.to_csv(os.path.join(save_path, save_name))
+        # Save each fiducial as a csv file
+        save_name = "SimSuite8_fiducial{0}_amr_comparison_" \
+            "face_{1}.csv".format(fid, face)
+        df.to_csv(os.path.join(save_path, save_name))
 
-#     # And the distances between the AMR fiducials.
+    # And the distances between the AMR fiducials.
 
-#     dists = {}
+    dists = {}
 
-#     for fid in ProgressBar(fiducials_amr[face].keys()):
+    for fid in ProgressBar(fiducials_amr[face].keys()):
 
-#         fid_name = fiducials_amr[face][fid]
+        fid_name = fiducials_amr[face][fid]
 
-#         for i, amr_fid in enumerate(fiducials_amr[face].keys()):
-#             if amr_fid == fid:
-#                 continue
+        for i, amr_fid in enumerate(fiducials_amr[face].keys()):
+            if amr_fid == fid:
+                continue
 
-#             fid_amr_name = fiducials_amr[face][amr_fid]
+            fid_amr_name = fiducials_amr[face][amr_fid]
 
-#             out = timestep_wrapper(fid_name, fid_amr_name, statistics, False)
+            out = timestep_wrapper(fid_name, fid_amr_name, statistics, False)
 
-#             out = [out]
-#             dists["{0}_{1}".format(fid, amr_fid)] = \
-#                 sort_distances(statistics, out).T.squeeze()
+            out = [out]
+            dists["{0}_{1}".format(fid, amr_fid)] = \
+                sort_distances(statistics, out).T.squeeze()
 
-#     df_fids = pd.DataFrame(dists, index=statistics).T
+    df_fids = pd.DataFrame(dists, index=statistics).T
 
-#     # Save each fiducial as a csv file
-#     save_name = "SimSuite8_fiducial_to_fiducial_amr_comparison_" \
-#         "face_{0}.csv".format(face)
-#     df_fids.to_csv(os.path.join(save_path, save_name))
+    # Save each fiducial as a csv file
+    save_name = "SimSuite8_fiducial_to_fiducial_amr_comparison_" \
+        "face_{0}.csv".format(face)
+    df_fids.to_csv(os.path.join(save_path, save_name))
 
 # Now run the analysis.
 
