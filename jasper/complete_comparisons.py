@@ -2,6 +2,7 @@
 import numpy as np
 from astropy.io.fits import getdata
 from pandas import DataFrame, read_csv
+from pandas import HDFStore
 from itertools import combinations, repeat
 from datetime import datetime
 import warnings
@@ -75,10 +76,6 @@ def obs_to_fid(obs_list, fiducial_dict, statistics, pool=None):
     Treat observations as the designs.
     '''
 
-    # Make the output
-    output_size = (len(obs_list),
-                   len(fiducial_dict[fiducial_dict.keys()[0]]))
-
     distances = {}
 
     for stat in statistics:
@@ -90,12 +87,14 @@ def obs_to_fid(obs_list, fiducial_dict, statistics, pool=None):
 
         # Give dendrogram save file.
         dendro_saves = [None, obs[:-5] + "_dendrostat.pkl"]
+        scf_saves = [None, obs[:-5] + ".scf.pkl"]
 
         # Create generator
         gen = zip(zip(fiducial_dict.values(), repeat(obs)),
                   repeat(statistics),
                   repeat(True),
-                  repeat(dendro_saves))
+                  repeat(dendro_saves),
+                  repeat(scf_saves))
 
         print("On " + str(posn + 1) + "/" + str(len(obs_list)) + " at " +
               str(datetime.now()))
@@ -124,10 +123,6 @@ def des_to_obs(obs_list, design_dict, statistics, pool=None):
     Treat observations as the fiducials.
     '''
 
-    # Make the output
-    output_size = (len(design_dict[design_dict.keys()[0]]),
-                   len(obs_list))
-
     distances = {}
 
     for stat in statistics:
@@ -138,12 +133,14 @@ def des_to_obs(obs_list, design_dict, statistics, pool=None):
 
         # Give dendrogram save file.
         dendro_saves = [obs[:-5] + "_dendrostat.pkl", None]
+        scf_saves = [obs[:-5] + ".scf.pkl", None]
 
         # Create generator
         gen = zip(zip(repeat(obs), design_dict.values()),
                   repeat(statistics),
                   repeat(True),
-                  repeat(dendro_saves))
+                  repeat(dendro_saves),
+                  repeat(scf_saves))
 
         print("On " + str(posn + 1) + "/" + str(len(obs_list)) + " at " +
               str(datetime.now()))
@@ -167,7 +164,8 @@ def des_to_obs(obs_list, design_dict, statistics, pool=None):
     return distances
 
 
-def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
+def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None],
+                   scf_saves=[None, None]):
 
     fits1, fits2 = fits
 
@@ -272,6 +270,7 @@ def run_comparison(fits, statistics, add_noise, dendro_saves=[None, None]):
                               statistics=statistics, multicore=True,
                               vca_break=vca_break, vcs_break=vcs_break,
                               dendro_saves=dendro_saves,
+                              scf_saves=scf_saves,
                               dendro_params=dendro_params,
                               periodic_bounds=periodic_bounds,
                               noise_value=noise_value,
@@ -380,7 +379,6 @@ if __name__ == "__main__":
 
     import os
     import sys
-    from pandas import DataFrame
 
     # statistics =  statistics_list
 
@@ -389,13 +387,11 @@ if __name__ == "__main__":
                   "DeltaVariance_Centroid_Curve",
                   "DeltaVariance_Centroid_Slope", "VCS_Break",
                   "VCS", "VCS_Large_Scale", "VCS_Small_Scale",
-                  "VCA", "PCA", "Cramer",  # "SCF",
+                  "VCA", "PCA", "Cramer", "SCF",
                   "Dendrogram_Hist", "Dendrogram_Num", "MVC"]
 
     # statistics = ["SCF", "Genus", "DeltaVariance", "Skewness", "Kurtosis"]
     # statistics = ["DeltaVariance"]
-
-    # statistics = ["SCF"]
 
     print "Statistics to run: %s" % (statistics)
 
@@ -441,8 +437,8 @@ if __name__ == "__main__":
             sys.exit(0)
     elif multiproc == "noMPI":
         from multiprocessing import Pool
-        pool = Pool(processes=12)
-        # pool = Pool(processes=4)
+        # pool = Pool(processes=12)
+        pool = Pool(processes=4, maxtasksperchild=100)
     else:
         pool = None
 
@@ -454,24 +450,11 @@ if __name__ == "__main__":
 
         sim_dict = sort_sim_files(sim_cubes)
 
-        output_storage = []
-
         # Loop through the fiducial sets
         for fid in sim_dict.keys():
 
             distances = obs_to_fid(obs_cubes, sim_dict[fid], statistics,
                                    pool=pool)
-
-            output_storage.append(distances)
-
-        if pool is not None:
-            pool.close()
-
-        # Loop through the statistics and append to the HDF5 file.
-
-        from pandas import HDFStore
-
-        for fid, distances in enumerate(output_storage):
 
             store = HDFStore(output_dir + save_name + "_fiducial_" + str(fid) +
                              "_face_" + str(face) + ".h5")
@@ -483,10 +466,11 @@ if __name__ == "__main__":
                                       for obs in obs_cubes],
                                columns=[sim.split("/")[-1]
                                         for sim in sim_dict[fid].values()])
-
                 store[key] = df
-
             store.close()
+
+        if pool is not None:
+            pool.close()
 
     elif comparison == "Des_to_Obs":
         sim_cubes = [sim_dir + f for f in os.listdir(sim_dir)
@@ -495,24 +479,11 @@ if __name__ == "__main__":
         sim_dict = sort_sim_files(sim_cubes, sim_labels=np.arange(0, 32),
                                   sim_type="Design")
 
-        output_storage = []
-
         # Loop through the fiducial sets
         for des in sim_dict.keys():
 
             distances = des_to_obs(obs_cubes, sim_dict[des], statistics,
                                    pool=pool)
-
-            output_storage.append(distances)
-
-        if pool is not None:
-            pool.close()
-
-        # Loop through the statistics and append to the HDF5 file.
-
-        from pandas import HDFStore
-
-        for des, distances in enumerate(output_storage):
 
             store = HDFStore(output_dir + save_name + "_design_" + str(des) +
                              "_face_" + str(face) + ".h5")
@@ -528,6 +499,10 @@ if __name__ == "__main__":
                 store[key] = df
 
             store.close()
+
+        if pool is not None:
+            pool.close()
+
     else:
         # Pairwise comparisons between the observations only
 
