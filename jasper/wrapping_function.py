@@ -14,7 +14,8 @@ from turbustat.statistics import (Wavelet_Distance, MVC_Distance,
                                   DeltaVariance_Distance, VCA_Distance,
                                   VCS_Distance, Tsallis_Distance,
                                   StatMoments_Distance, PCA_Distance,
-                                  SCF_Distance, Cramer_Distance,
+                                  SCF_Distance, SCF,
+                                  Cramer_Distance,
                                   DendroDistance, PDF_Distance,
                                   statistics_list)
 
@@ -26,6 +27,7 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
                   periodic_bounds=[True, True],
                   noise_value=[-np.inf, -np.inf],
                   dendro_saves=[None, None],
+                  scf_saves=[None, None],
                   inertial_range=[[None] * 2, [None] * 2],
                   spatial_range=[[None] * 2, [None] * 2]):
     '''
@@ -304,14 +306,28 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
 
     if any("SCF" in s for s in statistics):
 
-        boundary1 = "continuous" if periodic_bounds[0] else 'cut'
-        boundary2 = "continuous" if periodic_bounds[1] else 'cut'
+        # Switch the inputs such that the save file is the "fiducial"
+        # or first cube input below
+        if scf_saves[0] is not None:
+            fid_model = SCF.load_results(scf_saves[0])
+            cube1 = dataset1["cube"]
+            cube2 = dataset2["cube"]
+
+            boundary1 = "continuous" if periodic_bounds[0] else 'cut'
+            boundary2 = "continuous" if periodic_bounds[1] else 'cut'
+
+        if scf_saves[1] is not None:
+            fid_model = SCF.load_results(scf_saves[1])
+            cube2 = dataset1["cube"]
+            cube1 = dataset2["cube"]
+
+            boundary1 = "continuous" if periodic_bounds[1] else 'cut'
+            boundary2 = "continuous" if periodic_bounds[0] else 'cut'
 
         scf_distance = \
-            SCF_Distance(dataset1["cube"],
-                         dataset2["cube"],
+            SCF_Distance(cube1, cube2,
                          boundary=[boundary1, boundary2],
-                         fiducial_model=fiducial_models['SCF'])
+                         fiducial_model=fid_model)
         scf_distance.distance_metric()
         distances["SCF"] = scf_distance.distance
         if not multicore:
