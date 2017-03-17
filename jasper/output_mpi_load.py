@@ -96,10 +96,8 @@ def run_all(fiducial, simulation_runs, statistics, savename,
                                       len(simulation_runs)))
 
         if pool is not None:
-            # print zip(repeat(fiducial), simulation_runs.values(),
-            #           repeat(statistics))
-            # print blah
-            distances = map(single_input, zip(repeat(fiducial),
+
+            distances = pool.map(single_input, zip(repeat(fiducial),
                                                    simulation_runs.values(),
                                                    repeat(statistics),
                                                    repeat(noise_added)))
@@ -272,8 +270,8 @@ if __name__ == "__main__":
             try:
                 # Something is wrong if the pool creation hangs
                 with time_limit(9):
-                    # pool = Pool(processes=psize)
-                    pool = Pool(processes=4)
+                    pool = Pool(processes=psize)
+                    # pool = Pool(processes=4)
             except TimeoutException:
                 print("Pool creation failed.")
                 print("These are the args: {}".format(sys.argv[1:]))
