@@ -15,7 +15,6 @@ sb.set_context("paper")
 sb.set(font='Times New Roman', style='ticks', font_scale=1.0)
 sb.set_style({"xtick.direction": "in","ytick.direction": "in"})
 
-
 '''
 Runs the basic analysis pipeline, starting from the outputted HDF5 files
 
@@ -214,29 +213,44 @@ ta.effect_plots("DataforFits.csv", "ResultsFactorial.csv", save=True,
                 params=params)
 
 import seaborn as sb
-sb.set_context("poster", font_scale=1.2)
-sb.set_style('ticks')
+sb.set_context("paper")
+sb.set(font='Times New Roman', style='ticks', font_scale=1.2)
+
+figsize = (4.2, 6.0)
 
 # Coef plots for all terms
 ta.make_coefplots("DataforFits.csv", save=True, out_path="Model_Plots",
                   min_tvalue=min_tvalue, statistics=statistics,
-                  endog_formula="*".join(params))
+                  endog_formula="*".join(params),
+                  figsize=figsize)
 
 # Only show results of the good statistics
 if added_noise:
-    good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
-                  "Dendrogram_Num", "PCA", "PDF_Hellinger", "SCF", "VCA",
-                  "VCS_Large_Scale", "Skewness", "Kurtosis", "Genus"]
-
+    good_stats = ["Cramer", "DeltaVariance_Centroid_Curve",
+                  "DeltaVariance_Centroid_Slope", "PDF_Lognormal",
+                  "SCF", "VCA", "VCS_Large_Scale",
+                  "Skewness", "Kurtosis",
+                  "Genus", "Bispectrum", "PSpec",
+                  "MVC", "PCA", "Dendrogram_Num"]
 else:
-    good_stats = ["Cramer", "DeltaVariance", "Dendrogram_Hist",
-                  "Dendrogram_Num", "PCA", "PDF_Hellinger", "SCF", "VCA",
-                  "VCS", "VCS_Small_Scale", "VCS_Large_Scale", "Skewness",
-                  "Kurtosis", "Genus"]
+    good_stats = ["Cramer", "DeltaVariance_Centroid_Curve",
+                  "DeltaVariance_Centroid_Slope", "PDF_Lognormal",
+                  "SCF", "VCA", "VCS", "VCS_Small_Scale", "VCS_Large_Scale",
+                  "Skewness", "Kurtosis",
+                  "Genus", "Bispectrum", "PSpec",
+                  "MVC", "PCA", "Dendrogram_Num"]
+
+sb.set_context("paper")
+sb.set(font='Times New Roman', style='ticks', font_scale=1.0)
+sb.set_style({"xtick.direction": "out", "ytick.direction": "out"})
+
+# Set the figure size to be 1 column w/ height around half the page
+figsize = (4.2, 6.0)
 
 ta.map_all_results("ResultsFactorial.csv", normed=False, max_order=None,
                    save_name="map_all_results.pdf",
                    out_path='Model_Plots', statistics=good_stats,
-                   min_tvalue=min_tvalue, max_tvalue=30)
+                   min_tvalue=min_tvalue, max_tvalue=30,
+                   figsize=figsize)
 
 print("Finished!")

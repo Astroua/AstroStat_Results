@@ -246,10 +246,13 @@ if __name__ == "__main__":
 
 
     import seaborn as sb
-    sb.set_context("poster", font_scale=1.2)
-    sb.set_style('ticks')
+    # sb.set_context("poster", font_scale=1.2)
+    sb.set_context("paper")
+    sb.set(font='Times New Roman', style='ticks', font_scale=1.2)
+
+    figsize = (4.2, 6.0)
 
     make_coefplots(df_params, save=True, out_path=output_path,
                    output_name=basename,
                    min_tvalue=3.46, endog_formula='m*k*pb*vp*sf',  # *fc',
-                   statistics=statistics)
+                   statistics=statistics, figsize=figsize)
