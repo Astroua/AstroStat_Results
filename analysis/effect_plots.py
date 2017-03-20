@@ -15,6 +15,9 @@ import os
 
 from turbustat.statistics import statistics_list
 
+from plotting_stats_names import statistics_names
+
+
 p.rcParams.update({'font.size': 14})
 
 
@@ -213,7 +216,8 @@ def map_all_results(effects_file, min_tvalue=2.0, max_tvalue=10.0,
                     normed=False, out_path=None,
                     params={"fc": "F", "pb": r"$\beta$",
                             "m": r"$\mathcal{M}$", "k": r"$k$",
-                            "sf": r"$\zeta$", "vp": r"$\alpha$"}):
+                            "sf": r"$\zeta$", "vp": r"$\alpha$"},
+                    figsize=None):
 
     if isinstance(effects_file, str) or isinstance(effects_file, unicode):
         effects = read_csv(effects_file)
@@ -232,7 +236,7 @@ def map_all_results(effects_file, min_tvalue=2.0, max_tvalue=10.0,
     # Alter non-latex friendly strings
     stat_labels = []
     for stat in statistics:
-        stat_labels.append(stat.replace("_", " "))
+        stat_labels.append(statistics_names[stat].replace("_", " "))
 
     # Find the cutoff if a maximum order is given
     if max_order is not None:
@@ -277,13 +281,15 @@ def map_all_results(effects_file, min_tvalue=2.0, max_tvalue=10.0,
     milagro = \
         colormap_milagro(0, max_tvalue, min_tvalue)
 
-    w, h = mpl.rcParams["figure.figsize"]
-    hsize = lambda n: n * (h / 2)
-    wsize = lambda n: n * (w / (4 * (n / 5)))
+    if figsize is None:
+        w, h = mpl.rcParams["figure.figsize"]
+        hsize = lambda n: n * (h / 2)
+        wsize = lambda n: n * (w / (4 * (n / 5)))
+        n_terms = values.shape[1]
+        figsize = (hsize(1.5), wsize(n_terms))
 
-    n_terms = values.shape[1]
 
-    fig, ax = p.subplots(1, 1, figsize=(hsize(1.5), wsize(n_terms)))
+    fig, ax = p.subplots(1, 1, figsize=figsize)
 
     # Flip dimension to put lowest terms at the bottom
     p.imshow(values.T[::-1], vmin=0, vmax=max_tvalue, cmap=milagro,
@@ -314,7 +320,7 @@ def map_all_results(effects_file, min_tvalue=2.0, max_tvalue=10.0,
 
 def make_coefplots(data, endog_formula="fc*m*k*pb*vp*sf",
                    statistics=None, min_tvalue=2, save=False,
-                   out_path=None, output_name=None):
+                   out_path=None, output_name=None, figsize=None):
     '''
     Create coefplots for all statistics in a given data file.
     '''
@@ -343,7 +349,7 @@ def make_coefplots(data, endog_formula="fc*m*k*pb*vp*sf",
 
         try:
             coefplot("{0} ~ {1}".format(stat, endog_formula), data,
-                     min_tvalue=min_tvalue)
+                     min_tvalue=min_tvalue, figsize=figsize)
         except Exception:
             warnings.warn("Fitting failed for {}.".format(stat))
             continue
@@ -366,7 +372,7 @@ def make_coefplots(data, endog_formula="fc*m*k*pb*vp*sf",
 
 def coefplot(formula, data, intercept=False, ci=95, min_tvalue=2,
              mixed_effect="Cube", sig_color='r', nonsig_color='k',
-             add_legend=False):
+             add_legend=False, figsize=None):
     """Plot the coefficients from a linear model.
 
     Parameters
@@ -434,11 +440,13 @@ def coefplot(formula, data, intercept=False, ci=95, min_tvalue=2,
                 'k': r'$k$', 'sf': r'$\zeta$',
                 'vp': r'$\alpha$'}
 
-    w, h = mpl.rcParams["figure.figsize"]
-    hsize = lambda n: n * (h / 2)
-    wsize = lambda n: n * (w / (4 * (n / 5)))
+    if figsize is None:
+        w, h = mpl.rcParams["figure.figsize"]
+        hsize = lambda n: n * (h / 2)
+        wsize = lambda n: n * (w / (4 * (n / 5)))
+        figsize = (hsize(1.5), wsize(n_terms))
 
-    fig, ax = p.subplots(1, 1, figsize=(hsize(1.5), wsize(n_terms)))
+    fig, ax = p.subplots(1, 1, figsize=figsize)
     for i, term in enumerate(coefs.index):
         if tvals[term] < min_tvalue:
             color = nonsig_color
