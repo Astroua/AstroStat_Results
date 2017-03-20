@@ -20,7 +20,7 @@ def comparison_plot(path, num_fids=5, verbose=False,
                                  "2_0", "2_1", "2_2", "0_obs", "1_obs",
                                  "2_obs"],
                     out_path=None, design_matrix=None, sharey=True,
-                    obs_legend=False):
+                    obs_legend=False, show_title=True, use_tightlayout=False):
     '''
     Requires results converted into csv form!!
 
@@ -61,6 +61,10 @@ def comparison_plot(path, num_fids=5, verbose=False,
     obs_legend : bool, optional
         Turn on legend for the observational comparisons. When disabled,
         labels are plotted over the shaded region.
+    show_title : bool, optional
+        Show the title for each subplot (identifies which comparison is which).
+    use_tightlayout : bool, optional
+        Run `p.tight_layout()`.
     '''
 
     if path[-1] != "/":
@@ -196,7 +200,7 @@ def comparison_plot(path, num_fids=5, verbose=False,
                          data_files[key][1][stat],
                          num_fids, data_files[key][0], stat, bottom, left,
                          legend=legend, legend_labels=legend_labels,
-                         labels=design_labels)
+                         labels=design_labels, show_title=show_title)
                 enable_continue = False
             except KeyError:
                 warnings.warn("Could not find data for "+stat+" in "+key)
@@ -221,6 +225,9 @@ def comparison_plot(path, num_fids=5, verbose=False,
             fig.subplots_adjust(top=top, bottom=bottom)
 
         if verbose:
+            if use_tightlayout:
+                p.tight_layout()
+
             if p.isinteractive():
                 p.draw()
                 raw_input("Continue?")
@@ -234,13 +241,21 @@ def comparison_plot(path, num_fids=5, verbose=False,
                 if out_path[-1] != "/":
                     out_path += "/"
                 save_name = out_path + save_name
+            if use_tightlayout:
+                p.tight_layout()
             fig.savefig(save_name)
             p.close()
 
 
 def _plot_size(num, sharey=True):
+
+    width = 8.4
+    # Keep the default ratio used in seaborn. This can get overwritten.
+    height = (4.4 / 6.4) * width
+
     if num <= 3:
-        return p.subplots(num, sharex=True, sharey=sharey)
+        return p.subplots(num, sharex=True, sharey=sharey,
+                          figsize=(width, 3.7))
     elif num > 3 and num <= 8:
         rows = num / 2 + num % 2
         return p.subplots(nrows=rows, ncols=2, figsize=(14, 14),
@@ -254,7 +269,8 @@ def _plot_size(num, sharey=True):
 
 
 def _plotter(ax, data, fid_data, num_fids, title, stat, bottom, left,
-             legend=True, legend_labels=None, labels=None, ylims=None):
+             legend=True, legend_labels=None, labels=None, ylims=None,
+             show_title=True):
 
     num_design = (max(data.shape) / num_fids)
 
@@ -271,18 +287,17 @@ def _plotter(ax, data, fid_data, num_fids, title, stat, bottom, left,
     for i in range(num_fids):
         y_vals = data.ix[int(i * num_design):int(((i + 1) * num_design)-1)]
         if legend_labels is not None:
-            ax.plot(x_vals, y_vals, "-o", label=legend_labels[i], alpha=0.6)
+            ax.plot(x_vals, y_vals, "-o", label=legend_labels[i])#, alpha=0.6)
         else:
-            ax.plot(x_vals, y_vals, "-o", label="Fiducial " + str(i),
-                    alpha=0.6)
-    # Set title in upper left hand corner
-    ax.set_title(title, fontsize=12)
-    # ax.annotate(title, xy=(1, 0), xytext=(0.9, 0.05), va='top',
-    #             xycoords='axes fraction', textcoords='axes fraction',
-    #             fontsize=12, alpha=0.75)
+            ax.plot(x_vals, y_vals, "-o", label="Fiducial " + str(i))#,
+                    # alpha=0.6)
+
+    if show_title:
+        ax.set_title(title)#, fontsize=12)
+
     if left:
         # Set the ylabel using the stat name. Replace underscores
-        ax.set_ylabel(stat.replace("_", " ")+"\nDistance", fontsize=10,
+        ax.set_ylabel(stat.replace("_", " ")+"\nDistance", #fontsize=10,
                       multialignment='center')
     else:
         ax.set_ylabel("")
@@ -292,20 +307,20 @@ def _plotter(ax, data, fid_data, num_fids, title, stat, bottom, left,
         trans = ax.get_xaxis_transform()
 
         if labels is not None:
-            yposn = -0.28
+            yposn = -0.25
         else:
             yposn = -0.15
 
         # Put two 'labels' for the x axis
         ax.annotate("Designs", xy=(num_design/2 - 9, yposn),
                     xytext=(num_design/2 - 1, yposn),
-                    va='top', xycoords=trans,
-                    fontsize=12)
+                    va='top', xycoords=trans)#,
+                    # fontsize=12)
         fid_x = num_design + num_fids/2 - 2.5
         ax.annotate("Fiducials", xy=(fid_x, yposn),
                     xytext=(fid_x, yposn),
-                    va='top', xycoords=trans,
-                    fontsize=12)
+                    va='top', xycoords=trans)#,
+                    # fontsize=12)
 
     # Plot fiducials
     if fid_data is not None:
@@ -313,7 +328,7 @@ def _plotter(ax, data, fid_data, num_fids, title, stat, bottom, left,
         prev = 0
         for i, posn in enumerate(np.arange(num_fids - 1, 0, -1)):
             ax.plot(x_fid_vals[:len(x_fid_vals)-i-1],
-                    fid_data[prev:posn+prev], "ko", alpha=0.6,
+                    fid_data[prev:posn+prev], "ko", # alpha=0.6,
                     label="_nolegend_")
             prev += posn
     # Make the legend
@@ -340,9 +355,9 @@ def _horiz_obs_plot(ax, data, num_fids, shading=False, legend=False):
     '''
 
     # This eventually needs to be generalized
-    labels_dict = {"ophA.13co.fits": "OphA",
-                   "ngc1333.13co.fits": "NGC 1333",
-                   "ic348.13co.fits": "IC 348"}
+    labels_dict = {"ophA.13co.masked.fits": "OphA",
+                   "ngc1333.13co.masked.fits": "NGC 1333",
+                   "ic348.13co.masked.fits": "IC 348"}
 
     # Also needs to be generalized
     colors = ["g", "r", "b"]
@@ -385,7 +400,8 @@ def _horiz_obs_plot(ax, data, num_fids, shading=False, legend=False):
                 trans = ax.get_yaxis_transform()
                 ax.annotate(labels_dict[obs], xy=(0.9, middle),
                             xytext=(0.9, middle),
-                            fontsize=12, xycoords=trans,
+                            # fontsize=12,
+                            xycoords=trans,
                             verticalalignment='center',
                             horizontalalignment='center')
 
@@ -399,21 +415,23 @@ def _horiz_obs_plot(ax, data, num_fids, shading=False, legend=False):
 
             trans = ax.get_yaxis_transform()
             ax.annotate(labels_dict[obs], xy=(1.0, ymax), xytext=(1.03, yposn),
-                        fontsize=15, xycoords=trans,
+                        # fontsize=15,
+                        xycoords=trans,
                         arrowprops=dict(facecolor='k',
                                         width=0.05, alpha=1.0, headwidth=0.1),
                         horizontalalignment='left',
                         verticalalignment='center')
             ax.annotate(labels_dict[obs], xy=(1.0, ymin), xytext=(1.03, yposn),
-                        fontsize=15, xycoords=trans,
+                        # fontsize=15,
+                        xycoords=trans,
                         arrowprops=dict(facecolor='k',
                                         width=0.05, alpha=1.0, headwidth=0.1),
                         horizontalalignment='left',
                         verticalalignment='center')
 
     if legend:
-        ax.legend(fill_betweens, [labels_dict[obs] for obs in obs_names],
-                  fontsize=12)
+        ax.legend(fill_betweens, [labels_dict[obs] for obs in obs_names], frameon=True)
+                  # fontsize=12)
 
 
 def timestep_comparisons(path, verbose=False):

@@ -8,6 +8,14 @@ import sys
 import shutil
 from datetime import datetime
 
+import seaborn as sb
+
+# Set ticks facing inward
+sb.set_context("paper")
+sb.set(font='Times New Roman', style='ticks', font_scale=1.0)
+sb.set_style({"xtick.direction": "in","ytick.direction": "in"})
+
+
 '''
 Runs the basic analysis pipeline, starting from the outputted HDF5 files
 
@@ -136,7 +144,9 @@ if not os.path.exists(os.path.join(path, "Distance_Plots")):
 ta.comparison_plot(path, comparisons=faces,
                    out_path=os.path.join(path, "Distance_Plots"),
                    design_matrix=design_matrix,
-                   statistics=statistics)
+                   statistics=statistics,
+                   show_title=True if len(faces) == 1 else False,
+                   use_tightlayout=True)
 
 if not os.path.exists(os.path.join(path, "Distance_Plots_Paper")):
     os.mkdir(os.path.join(path, "Distance_Plots_Paper"))
@@ -145,7 +155,9 @@ ta.comparison_plot(path, comparisons=faces,
                    out_path=os.path.join(path, "Distance_Plots_Paper"),
                    design_matrix=design_matrix,
                    num_fids=5,
-                   statistics=statistics)
+                   statistics=statistics,
+                   show_title=True if len(faces) == 1 else False,
+                   use_tightlayout=True)
 
 # Run the R-script to fit the data to the model
 
