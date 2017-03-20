@@ -143,7 +143,10 @@ ta.comparison_plot(path, comparisons=faces,
                    out_path=os.path.join(path, "Distance_Plots_Paper"),
                    design_matrix=None,
                    num_fids=5,
-                   statistics=statistics)
+                   statistics=statistics,
+                   show_title=True if len(faces) == 1 else False,
+                   use_tightlayout=True)
+
 
 os.chdir(path)
 
