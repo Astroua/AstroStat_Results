@@ -14,11 +14,16 @@ statistics.append("DeltaVariance_Centroid_Curve")
 statistics_names = dict.fromkeys(statistics)
 
 for stat in statistics_names:
+
+    stat_spaced = stat.replace("_", " ")
+
     if "Dendrogram" in stat:
-        statistics_names[stat] = stat.replace("Dendrogram", "Dendro.")
+        statistics_names[stat] = \
+            stat_spaced.replace("Dendrogram", "Dendro.") + "."
     elif "DeltaVariance" in stat:
-        statistics_names[stat] = stat.replace("DeltaVariance", "Del. Var.")
+        statistics_names[stat] = \
+            stat_spaced.replace("DeltaVariance", "Del. Var.")
     elif stat == "PSpec":
-        statistics_names[stat] = "Spatial PSpec"
+        statistics_names[stat] = "Spatial Power Spec."
     else:
-        statistics_names[stat] = stat
+        statistics_names[stat] = stat_spaced
