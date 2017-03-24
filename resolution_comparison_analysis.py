@@ -86,8 +86,10 @@ if not os.path.exists(output_path):
 
 
 # Sort those from the 128 set, and keep only the first timestep
+# B/c the timestep 20 were processed for the fiducials, keep two
+# timesteps, then use the last one in the list
 fiducials, _, _ = \
-    files_sorter(path_to_data, timesteps=1, faces=faces,
+    files_sorter(path_to_data, timesteps=2, faces=faces,
                  append_prefix=True, design_labels=[], verbose=False)
 
 # Now the 256 cubes
@@ -144,7 +146,7 @@ if run_distances:
 
         # Loop through 128 fiducials
         for i, fid_num in enumerate(ProgressBar(fiducials[face].keys())):
-            fid_128 = fiducials[face][fid_num][0]
+            fid_128 = fiducials[face][fid_num][-1]
             dataset2 = \
                 Mask_and_Moments.from_fits(fid_128,
                                            moments_path=moments_path).to_dict()
