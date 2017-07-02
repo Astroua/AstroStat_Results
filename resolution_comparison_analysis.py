@@ -31,7 +31,7 @@ run_moments = False
 # To run on the regridded cubes, enable this
 run_on_regridded = True if sys.argv[1] == "T" else False
 run_distances = True
-run_analysis = False
+run_analysis = True
 
 # path_to_data = "/media/eric/Data_3/Astrostat/SimSuite8/"
 path_to_data = os.path.expanduser("~/MyRAID/Astrostat/SimSuite8/")
