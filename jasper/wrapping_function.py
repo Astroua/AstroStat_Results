@@ -308,26 +308,30 @@ def stats_wrapper(dataset1, dataset2, fiducial_models=None,
 
         # Switch the inputs such that the save file is the "fiducial"
         # or first cube input below
-        if scf_saves[0] is not None:
-            fid_model = SCF.load_results(scf_saves[0])
-            cube1 = dataset1["cube"]
-            cube2 = dataset2["cube"]
+        # if scf_saves[0] is not None:
+        #     fid_model = SCF.load_results(scf_saves[0])
+        #     cube1 = dataset1["cube"]
+        #     cube2 = dataset2["cube"]
 
-            boundary1 = "continuous" if periodic_bounds[0] else 'cut'
-            boundary2 = "continuous" if periodic_bounds[1] else 'cut'
+        #     boundary1 = "continuous" if periodic_bounds[0] else 'cut'
+        #     boundary2 = "continuous" if periodic_bounds[1] else 'cut'
 
-        if scf_saves[1] is not None:
-            fid_model = SCF.load_results(scf_saves[1])
-            cube2 = dataset1["cube"]
-            cube1 = dataset2["cube"]
+        # if scf_saves[1] is not None:
+        #     fid_model = SCF.load_results(scf_saves[1])
+        #     cube2 = dataset1["cube"]
+        #     cube1 = dataset2["cube"]
 
-            boundary1 = "continuous" if periodic_bounds[1] else 'cut'
-            boundary2 = "continuous" if periodic_bounds[0] else 'cut'
+        #     boundary1 = "continuous" if periodic_bounds[1] else 'cut'
+        #     boundary2 = "continuous" if periodic_bounds[0] else 'cut'
+
+        boundary1 = "continuous" if periodic_bounds[0] else 'cut'
+        boundary2 = "continuous" if periodic_bounds[1] else 'cut'
 
         scf_distance = \
             SCF_Distance(cube1, cube2,
                          boundary=[boundary1, boundary2],
-                         fiducial_model=fid_model)
+                         fiducial_model=fiducial_models["SCF"])
+                         # fiducial_model=fid_model)
         scf_distance.distance_metric()
         distances["SCF"] = scf_distance.distance
         if not multicore:
