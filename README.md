@@ -9,6 +9,8 @@ The scripts are best used as part of the pipeline. Most scripts will only work w
 
 # Requirements:
 
+The critical component for this analysis is the [TurbuStat](https://github.com/Astroua/TurbuStat) package, which we developed for this study. Please see the link for TurbuStat's requirements.
+
 The analysis was run using python 2.7. The required python packages are:
 
 * numpy
