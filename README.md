@@ -1,7 +1,9 @@
 # AstroStat_Results
 Scripts for reproducing the results of Koch et al. (2017) (ADD LINK)
 
-The complete set of data cubes is available at: (ADD LINK). The results used in the analysis are available in csv format at: (ADD LINK).
+The complete set of data cubes is available at: http://apps.canfar.net/storage/list/ekoch/Koch2017_SimulatedObs. The results used in the analysis are available in csv format within the `results` folder.
+
+The data cubes are post-processed RADMC3 outputs of a set of ENZO simulations. For details on the simulations setup and parameters chosen for the experimental design, see here: [https://github.com/low-sky/simscript](https://github.com/low-sky/simscript)
 
 This repository contains the scripts for reproducing all aspects of the analysis. The scripts used for the distance metric comparisons are contained in the `Jasper` folder. The analysis scripts for the distance comparisons are described below.
 
@@ -29,7 +31,7 @@ The modelling of the distance metric results requires the R language. Your path 
 * lme4
 
 # Scripts Description:
-* Jasper scripts -- Main comparisons are run on the Jasper cluster. This includes time-averaged and freefall comparisons of the clean cubes, noise-added cubes, hot fiducials, and observational comparisons. All jobs can be submitted through `jasper/run_all.sh`.
+* Jasper scripts -- Main comparisons are run on the Jasper cluster (https://www.westgrid.ca/support/systems/Jasper). This includes time-averaged and freefall comparisons of the clean cubes, noise-added cubes, hot fiducials, and observational comparisons. All jobs can be submitted through `jasper/run_all.sh`.
 * Smaller analyses -- We do a few more comparisons that are smaller in scope, and so are not setup for running on the cluster. This includes: the effect of AMR (`AMR_comparison_analysis.py`), and the resolution comparison (`resolution_comparison_analysis.py`; we do 2 runs with the 256 grid cubes, and another regridding back down to 128 pixels).
 * Analysis -- The main analysis is run through `run_all_analysis.sh`. This script takes the output from the jobs run on the Jasper cluster, creates a file directory structure, then runs the analyses. The analyses to run are depend on the variables set at the beginning of the script and the paths to the data. The main analysis is run through `analysis_pipeline.py`. This will convert the HDF5 files into the csv files expected for use with the R fitting scripts.
 
